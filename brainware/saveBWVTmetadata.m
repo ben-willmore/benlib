@@ -43,5 +43,4 @@ for file = files'
     
 end
 
-keyboard;
 save([dir filesep 'metadata.mat'], 'metadata');
