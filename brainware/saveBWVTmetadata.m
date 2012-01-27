@@ -18,7 +18,8 @@ for file = files'
 
   while found_data
     sweep = sweep + 1;
-    filename = [st '001-swp' num2str(sweep, '%04d') '.bwvt' en];
+    filepattern = [st '%n-swp' num2str(sweep, '%04d') '.bwvt' en];
+    filename = regexprep(filepattern, '%n', '001');
     pathname = [dir filesep filename];
     if ~exist(pathname, 'file')
       found_data = false;
@@ -32,7 +33,7 @@ for file = files'
     end
     bwvt = rmfield(bwvt, 'signal');
     
-    bwvt.dataFilename = filename;
+    bwvt.dataFilepattern = filepattern;
     if isempty(metadata)
       metadata = bwvt;
     else
@@ -43,5 +44,4 @@ for file = files'
     
 end
 
-keyboard;
 save([dir filesep 'metadata.mat'], 'metadata');
