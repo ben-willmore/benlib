@@ -31,30 +31,23 @@ for file = files'
       continue;
     end
     
-    if isnan(metadata.n_channels)
-      fprintf('Counting channels...\n');
-      found_chan = true;
-      chan = 0;
-      while found_chan
-        chan = chan + 1
-        chanfilename = regexprep(filepattern, '%n', num2str(chan, '%03d'));
-        chanpathname = [dir filesep chanfilename];
-        if ~exist(chanpathname, 'file')
-          found_chan = false;
-          continue;
-        end
-      metadata.n_channels = chan
-      end
-    end
-    
     bwvt = bwvtFileGunzipAndRead(pathname);
     if isempty(bwvt)
       fprintf('Empty bwvt file!\n');
       continue;
     end
+
+    % contrast data type
+    bwvt.stimlen = length(bwvt.signal)*bwvt.samplePeriod/1000;
+    if round(bwvt.stimlen)==31
+      bwvt.contraststim_version = 6;
+    else
+      bwvt.contraststim_version = 7;
+    end
+    
     bwvt = rmfield(bwvt, 'signal');
     
-    bwvt.dataFilepattern = filepattern;
+    bwvt.datafilepattern = filepattern;
     if isempty(metadata.sweeps)
       metadata.sweeps = bwvt;
     else

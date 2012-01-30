@@ -14,6 +14,5 @@ for fname = fnames'
   metadata = setfield(metadata, fname{1}, getfield(newmetadata, fname{1}));
 end
 
-metadata
 fprintf('Saving as %s\n', filename');
 save(filename, 'metadata');
