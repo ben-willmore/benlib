@@ -26,4 +26,6 @@ else
   metadata.area = 'ic';
 end
 
+metadata
+
 updatemetadatafile([dirname filesep 'metadata.mat'], metadata);
