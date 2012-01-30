@@ -36,7 +36,7 @@ for file = files'
       found_chan = true;
       chan = 0;
       while found_chan
-        chan = chan + 1
+        chan = chan + 1;
         chanfilename = regexprep(filepattern, '%n', num2str(chan, '%3d'));
         chanpathname = [dir filesep chanfilename];
         keyboard;
@@ -67,7 +67,8 @@ for file = files'
 end
 
 try
-  save([dir filesep 'metadata.mat'], 'metadata');
+  metadatafilename = [dir filesep 'metadata.mat'];
+  updatemetadatafile(metadatafilename, metadata);
 catch
   fprintf('Couldn''t save metadata file --- permissions problem?\n');
 end
