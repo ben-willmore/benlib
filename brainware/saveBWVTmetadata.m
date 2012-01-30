@@ -7,7 +7,6 @@ files = getfilesmatching([dir filesep '*' pattern '*']);
 
 
 metadata.sweeps = [];
-metadata.n_channels = nan;
 
 for file = files'
   fprintf('Reading files like %s...', file{1});
