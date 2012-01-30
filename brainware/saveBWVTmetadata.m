@@ -57,6 +57,8 @@ for file = files'
     
 end
 
+metadata.contraststim_version = unique([metadata.sweeps(:).contraststim_version]);
+
 try
   metadatafilename = [dir filesep 'metadata.mat'];
   updatemetadatafile(metadatafilename, metadata);
