@@ -26,13 +26,16 @@ else
   metadata.area = 'ic';
 end
 
-i = demandinput('What version contrast stimulus? [2/7/8] ', '278');
-if strcmp(lower(i), '2');
-  metadata.stimulus = 'contrast.v2';
-elseif strcmp(lower(i), '7');
-  metadata.stimulus = 'contrast.v7';
-elseif strcmp(lower(i), '8');
-  metadata.stimulus = 'contrast.v8';
+if metadata.exptnum<=14
+  metadata.contraststim_version = 6;
+elseif metadata.exptnum<=21
+  metadata.contraststim_version = 6;
+elseif metadata.exptnum==22
+  if strcmp(metadata.penid, 'P22')
+    metadata.contraststim_version = 7;
+  else
+    metdata.contraststim_version = 8;
+  end
 end
 
 metadata
