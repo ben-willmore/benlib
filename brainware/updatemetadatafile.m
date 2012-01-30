@@ -10,7 +10,7 @@ end
 fnames = fieldnames(newmetadata);
 
 for fname = fnames'
-  setfield(metadata, fname, getfield(newmetadata, fname));
+  metadata = setfield(metadata, fname{1}, getfield(newmetadata, fname{1}));
 end
 movefile(filename, [filename  '.old.mat']);
 save(filename, 'metadata');
