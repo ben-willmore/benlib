@@ -26,6 +26,20 @@ else
   metadata.area = 'ic';
 end
 
+i = demandinput('What version contrast stimulus? [2/7/8] ', '278');
+if strcmp(lower(i), '2');
+  metadata.stimulus = 'contrast.v2';
+elseif strcmp(lower(i), '7');
+  metadata.stimulus = 'contrast.v7';
+elseif strcmp(lower(i), '8');
+  metadata.stimulus = 'contrast.v8';
+end
+
 metadata
 
-updatemetadatafile([dirname filesep 'metadata.mat'], metadata);
+i = demandinput('OK to save? [y/n] ', 'yn');
+if strcmp(lower(i), 'y')
+  updatemetadatafile([dirname filesep 'metadata.mat'], metadata);
+else
+  fprintf('Doing nothing\n');
+end
