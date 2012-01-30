@@ -38,7 +38,8 @@ for file = files'
       while found_chan
         chan = chan + 1
         chanfilename = regexprep(filepattern, '%n', num2str(chan, '%3d'));
-        chanpathname = [dir filesep filename];
+        chanpathname = [dir filesep chanfilename];
+        keyboard;
         if ~exist(chanpathname, 'file')
           found_chan = false;
           continue;
