@@ -66,7 +66,8 @@ for file = files'
 end
 
 try
-  save([dir filesep 'metadata.mat'], 'metadata');
+  metadatafilename = [dir filesep 'metadata.mat'];
+  updatemetadatafile(metadatafilename, metadata);
 catch
   fprintf('Couldn''t save metadata file --- permissions problem?\n');
 end
