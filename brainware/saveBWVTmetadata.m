@@ -36,14 +36,14 @@ for file = files'
       found_chan = true;
       chan = 0;
       while found_chan
-        chan = chan + 1;
+        chan = chan + 1
         chanfilename = regexprep(filepattern, '%n', num2str(chan, '%3d'));
         chanpathname = [dir filesep filename];
-        if ~exist(pathname, 'file')
+        if ~exist(chanpathname, 'file')
           found_chan = false;
           continue;
         end
-        metadata.n_channels = chan;
+      metadata.n_channels = chan
       end
     end
     
