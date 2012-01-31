@@ -36,7 +36,8 @@ for file = files'
       continue;
     end
 
-    % contrast data type
+    % contrast data type -- guess from length
+    % NB this does not work for 'scaled' stimuli
     bwvt.stimlen = length(bwvt.signal)*bwvt.samplePeriod/1000;
     if round(bwvt.stimlen)==31
       bwvt.contraststim_version = 6;
@@ -58,6 +59,43 @@ for file = files'
 end
 
 metadata.contraststim_version = unique([metadata.sweeps(:).contraststim_version]);
+
+% organise by stimulus in 'set' structure, one entry per stimulus
+stimdir{6} = '/lab/bork/auditory-objects/stimuli/contrast/tokens/frozen.grids';
+stimdir{7} = '/lab/bork/auditory-objects/stimuli/tokens/v7.grids';
+
+stimfilepattern{6} = 'grid.contrast.%w.token.%t.mat';
+stimfilepattern{7} = 'grid.contrast.fullwidth.%w.token.%t.mat';
+
+stimparams = [reach(metadata.sweeps, 'stim.paramVal')' ...
+              reach(metadata.sweeps, 'contraststim_version')'];
+uniqueparams = unique(stimparams, 'rows');
+
+set = [];
+for setidx = 1:size(uniqueparams, 1)
+  params = uniqueparams(setidx,:);
+  thisset.sweepidx = find(all((stimparams==repmat(params,[size(stimparams,1) 1]))')');
+  thisset.sweeps = metadata.sweeps(thisset.sweepidx);
+  thisset.stim = thisset.sweeps(1).stim;
+  thisset.contraststim_version = thisset.sweeps(1).contraststim_version;
+
+  thisset.stim.fullwidth = ...
+      thisset.stim.paramVal([strcmp(thisset.stim.paramName, 'Fullwidth')]);
+  thisset.stim.token = ...
+      thisset.stim.paramVal([strcmp(thisset.stim.paramName, 'Token')]);
+
+  thisset.stimdir = stimdir{thisset.contraststim_version};
+  stimfilename = regexprep(stimfilepattern{metadata.contraststim_version},  ...
+                        '%w', num2str(thisset.stim.fullwidth));
+  thisset.stimfilename = regexprep(stimfilename, ...
+                        '%t', num2str(thisset.stim.token));
+
+  if isempty(set)
+    set = thisset;
+  else
+    set(end+1) = thisset;
+  end
+end
 
 try
   metadatafilename = [dir filesep 'metadata.mat'];

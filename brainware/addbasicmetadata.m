@@ -11,20 +11,20 @@ function addbasicmetadata(dirname)
   [d1, d2, d3, d4, penid] = regexp(pendir, '^(P[0-9]*)');
   metadata.penid = penid{1}{1};
 
-  % bilateral or unilateral data
-  i = demandinput('Bilateral or unilateral? [b/u] ', 'bu');
-  if strcmp(lower(i), 'b')
-    metadata.electrode_arrangement = 'bilateral';
-  else
-    metadata.electrode_arrangement = 'unilateral';
-  end
-
   % cortex or IC?
   i = demandinput('Cortex or IC? [c/i] ', 'ci');
   if strcmp(lower(i), 'c');
     metadata.area = 'cortex';
   else
     metadata.area = 'ic';
+  end
+
+  % bilateral or unilateral data
+  i = demandinput('Bilateral or unilateral? [b/u] ', 'bu');
+  if strcmp(lower(i), 'b')
+    metadata.electrode_arrangement = 'bilateral';
+  else
+    metadata.electrode_arrangement = 'unilateral';
   end
 
   % number of channels
@@ -58,7 +58,7 @@ function addbasicmetadata(dirname)
     metadata.electrode_channels = [1:metadata.n_channels/2; ...
                         metadata.n_channels/2+1:metadata.n_channels];
   else
-    metadata.electrode_channes = 1:metadata.n_channels;
+    metadata.electrode_channels = 1:metadata.n_channels;
   end
 
   % save
