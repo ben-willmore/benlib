@@ -97,6 +97,8 @@ for setidx = 1:size(uniqueparams, 1)
   end
 end
 
+metadata.set = set;
+
 try
   metadatafilename = [dir filesep 'metadata.mat'];
   updatemetadatafile(metadatafilename, metadata);
