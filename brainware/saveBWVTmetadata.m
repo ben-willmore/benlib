@@ -5,7 +5,6 @@ function metadata = saveBWVTmetadata(dir)
 pattern = '001-swp0000.bwvt';
 files = getfilesmatching([dir filesep '*' pattern '*']);
 
-
 metadata.sweeps = [];
 
 for file = files'
