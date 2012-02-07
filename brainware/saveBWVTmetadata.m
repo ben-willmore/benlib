@@ -2,7 +2,11 @@ function metadata = saveBWVTmetadata(dir)
 %% get metadata from BWVT files and save it in metadata.mat
 %% only for BWVTs with one file per sweep/channel combo
 
-pattern = '001-swp0000.bwvt';
+l = load([dir filesep 'metadata.mat']);
+metadata = l.metadata;
+
+pattern = [num2str(metadata.channelOffset+1, '%03d') '-swp0000.bwvt'];
+
 files = getfilesmatching([dir filesep '*' pattern '*']);
 
 metadata.sweeps = [];
@@ -22,8 +26,10 @@ for file = files'
   while found_data
     sweep = sweep + 1;
     filepattern = [st '%n-swp' num2str(sweep, '%04d') '.bwvt' en];
-    filename = regexprep(filepattern, '%n', '001');
+    filename = regexprep(filepattern, '%n', ...
+			 num2str(metadata.channelOffset+1, '%03d'));
     pathname = [dir filesep filename];
+
     if ~exist(pathname, 'file')
       found_data = false;
       continue;
