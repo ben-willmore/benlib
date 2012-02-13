@@ -5,14 +5,27 @@ function addbasicmetadata(dirname)
     dirpath = dirpath(1:end-1);
   end
 
-  sp = splitstr('/', dirpath)
-  exptdir = sp{end};
+  sp = splitstr('/', dirpath);
+  exptdir = sp{end-2}
   [d1, d2, d3, d4, exptnum] = regexp(exptdir, '([0-9]*$)');
   metadata.exptnum = str2num(exptnum{1}{1});
 
   pendir = sp{end};
   [d1, d2, d3, d4, penid] = regexp(pendir, '^(P[0-9]*)');
   metadata.penid = penid{1}{1};
+  [d1, d2, d3, d4, side] = regexp(pendir, '^P[0-9]*\.([LR]+)\.');
+  keyboard;
+  metadata.side = side{1}{1};
+
+
+
+  if metadata.side=='L'
+    metadata.channelOffset = 0;
+  elseif metadata.side=='R'
+    metadata.channelOffset = 16;
+  else
+    error('Confusion about which side this is from');
+  end
 
   % cortex or IC?
   %i = demandinput('Cortex or IC? [c/i] ', 'ci');
@@ -32,6 +45,7 @@ function addbasicmetadata(dirname)
 
   % number of channels
   metadata.n_channels = 16;
+
   % pattern = '001-swp0000.bwvt';
   % files = getfilesmatching([dirname filesep '*' pattern '*']);
   % file = files{1};
