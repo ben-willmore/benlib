@@ -31,7 +31,7 @@ function addbasicmetadata(dirname)
   %end
 
   % number of channels
-  metadata.n_channels = nan;
+  metadata.n_channels = 16;
   % pattern = '001-swp0000.bwvt';
   % files = getfilesmatching([dirname filesep '*' pattern '*']);
   % file = files{1};
