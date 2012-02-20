@@ -14,7 +14,6 @@ function addbasicmetadata(dirname)
   [d1, d2, d3, d4, penid] = regexp(pendir, '^(P[0-9]*)');
   metadata.penid = penid{1}{1};
   [d1, d2, d3, d4, side] = regexp(pendir, '^P[0-9]*\.([LR]+)\.');
-  keyboard;
   metadata.side = side{1}{1};
 
 
