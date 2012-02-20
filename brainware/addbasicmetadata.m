@@ -5,18 +5,18 @@ function addbasicmetadata(dirname)
     dirpath = dirpath(1:end-1);
   end
 
+  metadata.datadir=dirpath;
+
   sp = splitstr('/', dirpath);
   exptdir = sp{end-2}
   [d1, d2, d3, d4, exptnum] = regexp(exptdir, '([0-9]*$)');
   metadata.exptnum = str2num(exptnum{1}{1});
 
   pendir = sp{end};
-  [d1, d2, d3, d4, penid] = regexp(pendir, '^(P[0-9]*)');
-  metadata.penid = penid{1}{1};
-  [d1, d2, d3, d4, side] = regexp(pendir, '^P[0-9]*\.([LR]+)\.');
-  metadata.side = side{1}{1};
-
-
+  [d1,d2,d3,d4,sp] = regexp(pendir,'^(P[0-9]*)\.([LR]+)\.(.*)');
+  metadata.penid = sp{1}{1};
+  metadata.side = sp{1}{2};
+  metadata.exptname = sp{1}{3};
 
   if metadata.side=='L'
     metadata.channelOffset = 0;

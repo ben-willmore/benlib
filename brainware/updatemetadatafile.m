@@ -3,7 +3,7 @@ function updatemetadatafile(filename, newmetadata)
 if exist(filename, 'file')
   l = load(filename);
   metadata = l.metadata;
-  movefile(filename, [filename  '.old.mat']);
+  %movefile(filename, [filename  '.old.mat']);
 else
   metadata = struct;
 end
