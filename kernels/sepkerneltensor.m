@@ -1,5 +1,5 @@
-function kernel = separablekerneltensor(X_fht, y_t)
-% function kernel = separablekerneltensor(X_fht, y_t)
+function kernel = sepkerneltensor(X_fht, y_t)
+% function kernel = sepkerneltensor(X_fht, y_t)
 % 
 % Compute separable kernel from tensorized stimulus
 %
@@ -14,6 +14,10 @@ function kernel = separablekerneltensor(X_fht, y_t)
 %  kernel.c_f -- constant term for freq
 %  kernel.c_h -- constant term for history
 
+if ~exist('niter', 'var')
+  niter = 15;
+end
+
 % insert constant so we can estimate constant terms
 X_fht(end+1, end+1, :) = 1;
 
@@ -22,13 +26,19 @@ X_fht(end+1, end+1, :) = 1;
 k_f = ones(n_f, 1);
 k_h = ones(n_h, 1);
 
-for ii = 1:15
+for ii = 1:niter
  yh = X_fht.*repmat(k_f, [1 n_h n_t]);
  yh = squeeze(sum(yh, 1));
+ % the following is OK but seems to be slower
+ % yh = squeeze(multiprod(X_fht, k_f, 1));
+ 
  k_h = lsqlin(yh', y_t);
 
  yh = X_fht.*repmat(k_h', [n_f 1 n_t]);
  yh = squeeze(sum(yh, 2));
+ % the following is OK and same speed
+ % yh = multiprod(X_fht, k_h', 2);
+ 
  k_f = lsqlin(yh', y_t);
 end
 
