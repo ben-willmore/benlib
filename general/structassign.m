@@ -16,7 +16,7 @@ oldfieldlist = fieldnames(structarray);
 newfieldlist = fieldnames(strct);
 
 fields_to_remove = setdiff(oldfieldlist, newfieldlist);
-fields_to_add = setdiff(newfieldlist, oldfieldlist);
+fields_to_add = newfieldlist;
 
 for f = 1:length(fields_to_remove)
   structarray = rmfield(structarray, fields_to_remove{f});
