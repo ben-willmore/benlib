@@ -62,8 +62,9 @@ function kernel = sepcsdkernel(X_fht, y_dt, niter)
 
   % flip kernel if necessary so largest peak is +ve
   idx = find(abs(kernel.k_f)==max(abs(kernel.k_f)));
-  kernel.k_f = kernel.k_f*sign(kernel.k_f(idx));
-  kernel.k_hd = kernel.k_hd*sign(kernel.k_f(idx));
+  sgn = sign(kernel.k_f(idx));
+  kernel.k_f = kernel.k_f*sgn;
+  kernel.k_hd = kernel.k_hd*sgn;
   
   fprintf('done\n');  
 
