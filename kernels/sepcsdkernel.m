@@ -1,5 +1,5 @@
 function kernel = sepcsdkernel(X_fht, y_dt, niter)
-% function kernel = separablecsdkernel(X_fht, y_dt, niter)
+% function kernel = sepcsdkernel(X_fht, y_dt, niter)
 % 
 % Compute separable CSD kernel (one freq profile per depth plus
 % one inseparable history x depth kernel)
@@ -42,9 +42,6 @@ function kernel = sepcsdkernel(X_fht, y_dt, niter)
     a_td_f = reshape(a_fdt, [n_f n_d*n_t])';
     k_f = a_td_f\y_td_unwrap;
     
-    % force k_f to be positive
-    k_f = k_f*sign(mean(k_f(1:end-1)));
-  
     % multiply by frequency kernel and sum over frequency
     b_ht = squeeze(multiprod(X_fht, k_f,1));
   
@@ -56,6 +53,11 @@ function kernel = sepcsdkernel(X_fht, y_dt, niter)
 
   end
 
+  % force k_f to have a positive peak
+  mx = k_f(abs(k_f)==max(abs(k_f)));
+  k_f = k_f*sign(mx);
+  k_hd = k_hd*sign(mx);
+  
   % separate out constant terms
   kernel.c_f = k_f(end);
   kernel.k_f = k_f(1:end-1);
