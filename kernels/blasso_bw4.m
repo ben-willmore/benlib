@@ -1,21 +1,21 @@
-function [beta, k, xcs, beta_history, k_history] = blasso_nr2(X,Y,params,Xv,Yv,Xp,Yp)
-    % function [beta, xcs] = blasso_nr(X,Y,params,Xv,Yv,Xp,Yp)
+function [beta, k, xcs, beta_history, k_history] = blasso_bw4(X, Y, params, Xp, Yp)
+    % function beta, k, xcs, beta_history, k_history] = blasso_bw4(X, Y, params, Xp, Yp)
     %
     % main boosting core code
     %   - original: bw 2006-11
     %   - updated: ncr 2008-05-28
     %   - 2008-08-28 -- allow for interruptions
+    %   - 2012-08-02 -- BW -- deals with standardisation of data (and kernels), so you 
+    %                          don't need to standardise input
+    %                      -- returns the whole lasso path (as far as it is estimated)
+    %                           in beta_history
+    %                      -- chooses data for fitting regularisation parameter (Xv) itself
     %
     % inputs:
     %   - X is samples x channels
     %   - Y is samples x 1
-    %   - Xv, Yv: data for cross-validation
     %   - Xp, Yp: data for prediction
     %
-    % You must make sure the channels in X and Y have mean=0 and sd=1, and
-    % that the channels in Xp and Yp (and Xv, Yv) have been transformed using the
-    % same values (though Xp and Yp will not then have exactly 0 mean
-    % and sd=1 themselves.)
     %
     % outputs:
     %   - beta: predictor matrix
@@ -28,6 +28,11 @@ function [beta, k, xcs, beta_history, k_history] = blasso_nr2(X,Y,params,Xv,Yv,X
 %% optional inputs and parameters
     if ~exist('params','var') | isempty(params)
       params = struct;
+    end
+
+    if ~isfield(params, 'valprop')
+      % proportion of data to use for validation set
+      params.valprop = 0.1;
     end
     
     if ~isfield(params,'allowinterrupts')
@@ -73,11 +78,11 @@ function [beta, k, xcs, beta_history, k_history] = blasso_nr2(X,Y,params,Xv,Yv,X
     end
     
     % step size. should be about 1/1000th of the SD of Y (which is 1)
-        epsilon = getparm(params,'epsilon',0.001);
+        epsilon = getparm(params,'epsilon',0.01);
 
     % fudge factor which prevents oscillations.  good values seem to be
     % about 1/10000th of epsilon
-        xi      = getparm(params,'xi',1e-6) * epsilon;
+        xi = getparm(params,'xi',1e-6) * epsilon;
         
     % suppress printouts?
         suppress_display = getparm(params,'suppress_display',0);
@@ -105,7 +110,33 @@ function [beta, k, xcs, beta_history, k_history] = blasso_nr2(X,Y,params,Xv,Yv,X
       Yp = nan;
     end
 
+%% split X and Y into fit and validation sets
+%% fit set will be used to do the regression
+%% validation set will be used to choose the regularisation parameter
+rand('seed', 110876);
+n = size(X, 1);
+idx = randperm(n);
+
+n_fit = floor((1-params.valprop)*n);
+fitidx = idx(1:n_fit);
+validx = idx(n_fit+1:end);
+
+Xf = X(fitidx, :);
+Yf = Y(fitidx, :);
+
+Xv = X(validx, :);
+Yv = Y(validx, :);
+
+X = Xf;
+Y = Yf;
+
+
 %% standardisation of X and Y
+%% The algorithm uses correlation coefficient to choose which steps to take
+%% This only works if mean(X_i)=0 and std(X_i)=1. I don't think it's strictly
+%% necessary to standardise Y, but it helps when choosing step size (epsilon).
+%% Note that Xv and Xp need to undergo exactly the same transformation as X.
+%% Similarly for Yv and Yp.
 
 X_mn = mean(X, 1);
 X_sd = std(X, [], 1);
@@ -284,9 +315,10 @@ while lambda>=0 && ~stop
         valxc = quickcc(Yv,Yv_hat);
         predxc= quickcc(Yp,Yp_hat);
       warning on MATLAB:divideByZero;
-      xc_history(l1,:)  = [fitxc valxc predxc]; %#ok<AGROW>
+      xc_history(l1, :)  = [fitxc valxc predxc]; %#ok<AGROW>
   
   % display, if requested
+  
       if params.display_print
         if l1>1
             fprintf(['L1 norm = ' num2str(l1-1) '\n']);
@@ -386,15 +418,19 @@ end
 k_history = k;
 
    if any(isfinite(xc_history(:,2)))
-      best_l1 = find(xc_history(:,2)==max(xc_history(:,2)));
-      best_l1 = best_l1(1);
+      %% choose best kernel based on validation data
+      %% the 'best' is the one with the highest value of xc_val
+      quality = xc_history(:, 2);
+      best_l1 = find(quality==max(quality), 1);
+      %best_l1 = find(xc_history(:,2)==max(xc_history(:,2)));
+      %best_l1 = best_l1(1);
     else
       best_l1 = size(xc_history, 1);
     end
 
     beta = beta_history(:,:,best_l1);
     k = k_history(best_l1);
-        
+    
     if ~suppress_display
         fprintf(['Best L1  = ' num2str(best_l1) '\n']);
         fprintf(['Best XCs = ' num2str(xc_history(best_l1,:)) '\n']);

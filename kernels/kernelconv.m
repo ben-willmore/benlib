@@ -10,4 +10,4 @@ function y_t = kernelconv(X_fht, kernel)
 % Output:
 %  y_t -- response vector
 
-y_t = k + squeeze(sum(sum(multiprod(data.X_fht, boostkernel.k_fh, 3), 1), 2));
+y_t = kernel.c + squeeze(sum(sum(multiprod(X_fht, kernel.k_fh, 3), 1), 2))';
