@@ -16,11 +16,14 @@ end
 
 children = get(fig,'children');
 
-pos = nan(length(children),4);
+pos = {};
 for ii = 1:length(children);
-  [x y w h] = itemise(get(children(ii),'position'));
-  pos(ii,:) = [x y x+w y+h];
+  if strcmp(get(children(ii), 'type'), 'axes')
+	  [x y w h] = itemise(get(children(ii),'position'));
+  	pos{end+1} = [x y x+w y+h];
+  end
 end
+pos = cell2mat(pos');
 
 [xmin ymin xmax ymax] = itemise([min(pos(:,1)) min(pos(:,2)) max(pos(:,3)) max(pos(:,4))]);
 rect = [xmin ymin xmax-xmin ymax-ymin];

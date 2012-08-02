@@ -13,7 +13,7 @@ function [SP, NP, TP, SP_std_error] = sahani_quick(data)
   TP = mean(var(data,[],2));
   
   % signal power
-  SP = 1/(N-1) * (N * var(mean(data)) - TP);  
+  SP = 1/(N-1) * (N * var(mean(data)) - TP);
   if SP<0
     SP = nan;
   end

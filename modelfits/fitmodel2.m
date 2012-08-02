@@ -1,4 +1,4 @@
-function result = fitmodel(fp, data, fitset, predset)
+function result = fitmodel2(fp, data, fitidx, predidx)
 
 res = struct;
 for ii = 1:fp.restarts % n restarts with different initial conditions
@@ -10,11 +10,11 @@ for ii = 1:fp.restarts % n restarts with different initial conditions
   
   % do fitting
   res(ii).params = fmincon(@(x) ...
-          sum((fp.model(x,fitdata)-fitdata.y_t).^2), ...
+          sum((fp.model(x,data,fitidx)-data.y_t(fitidx)).^2), ...
           res(ii).x0, fp.params{:}, fp.options);
-  res(ii).yhat = fp.model(res(ii).params, fitdata);
-  res(ii).sqerr = sum((res(ii).yhat-fitdata.y_t).^2);
-  t = corrcoef(res(ii).yhat, fitdata.y_t);
+  res(ii).yhat = fp.model(res(ii).params, data, fitidx);
+  res(ii).sqerr = sum((res(ii).yhat-data.y_t(fitidx)).^2);
+  t = corrcoef(res(ii).yhat, data.y_t(fitidx));
   res(ii).fitcc = t(1,2);
 
   % progress bar
@@ -34,10 +34,10 @@ result.fit.yhat = res(f).yhat;
 result.fit.sqerr = res(f).sqerr;
 result.fit.cc = res(f).fitcc;
 
-if nargin==3
-  result.pred.yhat = fp.model(result.params, preddata);
-  result.pred.sqerr = sum((result.pred.yhat-preddata.y_t).^2);
-  t = corrcoef(result.pred.yhat, preddata.y_t);
+if nargin==4
+  result.pred.yhat = fp.model(result.params, data, predidx);
+  result.pred.sqerr = sum((result.pred.yhat-data.y_t(predidx)).^2);
+  t = corrcoef(result.pred.yhat, data.y_t(predidx));
   result.pred.cc = t(1,2);
 end
 

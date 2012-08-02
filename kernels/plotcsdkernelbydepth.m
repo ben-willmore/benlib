@@ -1,4 +1,4 @@
-function plotcsdkernelbydepth(kernel)
+function plotcsdkernelbydepth(kernel, scaleup)
 % function plotcsdkernelbydepth(kernel)
 %
 % Plot CSD kernel, depth by depth
@@ -7,6 +7,10 @@ function plotcsdkernelbydepth(kernel)
 %  kernel.fhd -- kernel freq x history x depth
 %  kernel.f -- freqs
 %  kernel.h -- history times in ms
+
+if nargin<2
+  scaleup = false;
+end
 
 n_depths  = size(kernel.k_fhd, 3);
 if n_depths <= 16
@@ -17,7 +21,14 @@ else
   n = 6;
 end
 
-kernel.k_fhd = kernel.k_fhd/max(abs(kernel.k_fhd(:)));
+if scaleup
+  for ii = 1:size(kernel.k_fhd, 3)
+    kernel.k_fhd(:,:,ii) = kernel.k_fhd(:,:,ii)/max(abs(ravel(kernel.k_fhd(:,:,ii))));
+  end
+else
+  kernel.k_fhd = kernel.k_fhd/max(abs(kernel.k_fhd(:)));
+end
+
 plotsep = .2;
 
 for depthidx = 1:n_depths

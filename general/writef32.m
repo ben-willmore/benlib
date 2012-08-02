@@ -1,4 +1,4 @@
-function readf32(data, filename)
+function writef32(data, filename)
 
 f = fopen(filename,'w');
 if (f==-1)
