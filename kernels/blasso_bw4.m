@@ -374,7 +374,7 @@ while lambda>=0 && ~stop
 
         figure(3);
         mx = max(abs(beta_history(:,:, end)));
-        imagesc(reshape(beta_history(:,:,end), 34, 80));
+        imagesc(reshape(beta_history(:,:,end), 25, 23)');
         drawnow;
 
       end

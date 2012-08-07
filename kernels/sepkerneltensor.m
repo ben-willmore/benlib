@@ -14,6 +14,8 @@ function kernel = sepkerneltensor(X_fht, y_t)
 %  kernel.c_f -- constant term for freq
 %  kernel.c_h -- constant term for history
 
+fprintf('sepkerneltensor has been superceded by sepkerneltensor2.\n');
+
 if ~exist('niter', 'var')
   niter = 15;
 end
