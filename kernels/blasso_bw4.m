@@ -1,4 +1,4 @@
-function [beta, k, xcs, beta_history, k_history] = blasso_bw4(X, Y, params, Xp, Yp)
+function [beta, k, xcs, beta_history, k_history, fitidx, validx] = blasso_bw4(X, Y, params, Xp, Yp)
     % function beta, k, xcs, beta_history, k_history] = blasso_bw4(X, Y, params, Xp, Yp)
     %
     % main boosting core code
