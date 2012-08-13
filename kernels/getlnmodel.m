@@ -1,5 +1,5 @@
-function model = getlnmodelandfits(z_fit, y_fit)
-% function model = getlnmodelandfits(z_fit, y_fit)
+function model = getlnmodel(z_fit, y_fit)
+% function model = getlnmodel(z_fit, y_fit)
 
 fitdata.y_t = y_fit;
 fitdata.z_t = z_fit;
