@@ -7,19 +7,39 @@ c_L = x(3);
 c_H = x(4);
 d_L = x(5);
 d_H = x(6);
-tau = x(7);
+tau = x(7); % time constant
+h_0 = x(8); % lag of exponential
 
 z_t = data.z_t;
 C_ht = data.C_ht;
+[n_h, n_t] = size(C_ht);
+dt = data.dt;
 
-% this should be done using milliseconds, not chord_fs steps
-h = (size(C_ht,1)-1:-1:0)';
-lambda_h = repmat(exp(-h/tau),[1 size(C_ht,2)]);
-kappa_h = lambda_h./ ...
-          repmat(sum(lambda_h,1), [size(lambda_h, 1), 1]);
+h = dt * ((n_h-1):-1:0)';
 
-c_t = c_L + (c_H-c_L)*sum(kappa_h.*C_ht, 1);
-d_t = d_L + (d_H-d_L)*sum(kappa_h.*C_ht, 1);
+% old version of code, messier but the same result
+% % lambda_h = repmat(exp(-h/tau),[1 size(C_ht,2)]);
+% % kappa_h = lambda_h./ ...
+% %          repmat(sum(lambda_h,1), [size(lambda_h, 1), 1]);
+
+% cp_t = c_L + (c_H-c_L)*sum(kappa_h.*C_ht, 1);
+% dp_t = d_L + (d_H-d_L)*sum(kappa_h.*C_ht, 1);
+
+% exponential weighting with lag
+h_dash = max(h-h_0, 0);
+lambda_h = exp(-(h_dash)/tau);
+plot(-h_dash, lambda_h);
+drawnow;
+
+% weighting function should sum to 1
+kappa_h = lambda_h / sum(lambda_h);
+
+% exponential weighting multiplied by contrast history
+r_t = multiprod(C_ht, kappa_h, 1);
+
+
+c_t = c_L + (c_H-c_L)*r_t;
+d_t = d_L + (d_H-d_L)*r_t;
 
 g = 1./(1+exp(-(z_t-c_t)./d_t));
 
