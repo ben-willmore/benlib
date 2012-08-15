@@ -6,7 +6,7 @@ fitdata.z_t = z_fit;
 fitdata.C_t = C_fit;
 
 % initialise fit params
-fitparams.restarts = 8;
+fitparams.restarts = 4;
 fitparams.options = optimset('Algorithm','sqp', 'Display', 'off');
 fitparams.model = @gainmodel;
 
