@@ -9,7 +9,7 @@ fitdata.z_t = z_fit;
 fitdata.C_ht = C_ht_fit;
 
 % initialise fit params
-fitparams.restarts = 2;
+fitparams.restarts = 4;
 fitparams.options = optimset('Algorithm','sqp', 'Display', 'off');
 fitparams.model = @gtcmodel;
 
@@ -29,7 +29,7 @@ fitparams.x0fun = {@() p(1) ...
             @() 0};
 
 lb = [p(1) p(2) p(3) p(4) p(5) p(6) 0 0];
-ub = [p(1) p(2) p(3) p(4) p(5) p(6) h_max/5 0]
+ub = [p(1) p(2) p(3) p(4) p(5) p(6) h_max/5 0];
 
 fitparams.params = {[], [], [], [], lb, ub, []};
 
