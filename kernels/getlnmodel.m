@@ -39,9 +39,13 @@ fitparams.params = {[], [], [], [], lb, ub, []};
 model = fitmodel3(fitparams, fitdata);
 
 if any(abs(model.params-lb)<eps)
-	fprintf('getlnmodel: hit lower bounds\n');
+	fprintf('getlnmodel: hit lower bounds:\n');
+	fitparams.params
+	lb
 end
 
 if any(abs(model.params-ub)<eps)
 	fprintf('getlnmodel: hit upper bounds\n');
+	fitparams.params
+	ub
 end
