@@ -5,7 +5,7 @@ fitdata.y_t = data.y_t(fit.idx);
 fitdata.z_t = z_t(fit.idx);
 
 % initialise fit params
-fitparams.restarts = 4;
+fitparams.restarts = 16;
 fitparams.options = optimset('Algorithm','sqp', 'Display', 'off');
 fitparams.model = @lnmodel;
 

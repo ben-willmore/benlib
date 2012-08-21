@@ -7,10 +7,10 @@ function yhat_t = lnmodel(x, data)
 %  x -- parameters
 %  data.z_t -- output of separable kernel
 
-a = x(1);
-b = x(2);
-c = x(3);
-d = x(4);
+a = x(1); % y-offset
+b = x(2); % y-range
+c = x(3); % x-location of inflexion point
+d = x(4); % max slope
 
 z_t = data.z_t;
 
