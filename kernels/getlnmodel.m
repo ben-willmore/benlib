@@ -40,12 +40,12 @@ model = fitmodel3(fitparams, fitdata);
 
 if any(abs(model.params-lb)<eps)
 	fprintf('getlnmodel: hit lower bounds:\n');
-	params = fitparams.params
+	model.params
 	lb
 end
 
 if any(abs(model.params-ub)<eps)
 	fprintf('getlnmodel: hit upper bounds\n');
-	params = fitparams.params
+	model.params
 	ub
 end
