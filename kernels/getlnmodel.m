@@ -32,7 +32,7 @@ z_range = range(z_fit);
 
 % bounds are intended to be rather generous
 lb = [y_min-y_range 0 z_min-z_range -1000]; % lower bounds
-ub = [y_max+y_range 2*y_range z_max+z_range 1000]; % upper bounds
+ub = [y_max+y_range 10*y_range z_max+z_range 1000]; % upper bounds
 
 fitparams.params = {[], [], [], [], lb, ub, []};
 
