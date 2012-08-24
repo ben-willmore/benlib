@@ -1,14 +1,13 @@
-function yhat_t = gaintimecoursemodel(x, data)
-% gain model with time course
+function yhat_t = thresholdtimecoursemodel(x, data)
+% threshold-shift model with time course
 
 a = x(1);
 b = x(2);
 c_L = x(3);
 c_H = x(4);
-d_L = x(5);
-d_H = x(6);
-tau = x(7); % time constant
-h_0 = x(8); % lag of exponential
+d = x(5);
+tau = x(6); % time constant
+h_0 = x(7); % lag of exponential
 
 z_t = data.z_t;
 C_ht = data.C_ht;
@@ -39,7 +38,7 @@ r_t = multiprod(C_ht, kappa_h, 1);
 
 
 c_t = c_L + (c_H-c_L)*r_t;
-d_t = d_L + (d_H-d_L)*r_t;
+d_t = ones(size(c_t))*d;
 
 g = 1./(1+exp(-(z_t-c_t)./d_t));
 
