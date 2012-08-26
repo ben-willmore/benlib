@@ -1,4 +1,4 @@
-function h = subplottight(m,n,p,separation)
+function h = subplottight(m,n,p,separation, margin)
 
 if ~exist('separation','var')
   separation = .1;
@@ -6,7 +6,9 @@ end
 
 prop = 1-separation;
 
-margin = .1;
+if ~exist('margin', 'var')
+	margin = .1;
+end
 
 xnum = mod(p-1,n)+1;
 ynum = floor((p-1)/n)+1;
