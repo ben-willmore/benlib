@@ -29,7 +29,7 @@ fitparams.x0fun = {@() p(1)*(.95+(rand*.1)) ...
             @() 0};
 
 lb = [-Inf 0 -Inf -Inf 0 0 0 0];
-ub = [+Inf +Inf +Inf +Inf +Inf +Inf h_max/2 0];
+ub = [+Inf +Inf +Inf +Inf +Inf +Inf h_max 0];
 
 fitparams.params = {[], [], [], [], lb, ub, []};
 
