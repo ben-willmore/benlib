@@ -18,6 +18,6 @@ fitparams.x0fun = {@() lnmodel.params(1)*(.95+(rand*.1)) ...
             @() lnmodel.params(4)*(.95+(rand*.1)) ...
             @() lnmodel.params(4)*(.95+(rand*.1))};
 
-fitparams.params = {[], [], [], [], [0 0 -Inf -Inf 0 0], [], []};
+fitparams.params = {[], [], [], [], [-Inf 0 -Inf -Inf 0 0], [], []};
 
 model = fitmodel3(fitparams, fitdata);
