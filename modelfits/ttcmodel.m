@@ -27,8 +27,8 @@ h = dt * ((n_h-1):-1:0)';
 % exponential weighting with lag
 h_dash = max(h-h_0, 0);
 lambda_h = exp(-(h_dash)/tau);
-plot(-h_dash, lambda_h);
-drawnow;
+% plot(-h_dash, lambda_h);
+% drawnow;
 
 % weighting function should sum to 1
 kappa_h = lambda_h / sum(lambda_h);
