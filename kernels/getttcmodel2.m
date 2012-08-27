@@ -9,7 +9,7 @@ fitdata.z_t = z_fit;
 fitdata.C_ht = C_ht_fit;
 
 % initialise fit params
-fitparams.restarts = 4;
+fitparams.restarts = 2;
 fitparams.options = optimset('Algorithm','sqp', 'Display', 'off');
 fitparams.model = @ttcmodel;
 
