@@ -10,10 +10,10 @@ if isstr(width)
 	end
 end
 
-set(gcf,'PaperUnits','centimeters','PaperPosition',[0 0 width height]);
+% if width>height
+% 	orient landscape
+% else
+% 	orient portrait
+% end
 
-if width>height
-	orient landscape
-else
-	orient portrait
-end
+set(gcf,'PaperUnits','centimeters','PaperPosition',[0 0 width height]);
