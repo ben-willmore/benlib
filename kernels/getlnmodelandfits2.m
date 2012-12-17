@@ -21,7 +21,7 @@ ymin = prctile(fitdata.y_t, 25);
 %d ~ Exp(0.1 * zrange)
 fitparams.x0fun = {@() exprnd(ymin+0.05) @() exprnd(yrange) ...
        			     @() (randn*zrange)+zmean @() exprnd(0.1*zrange)};
-fitparams.params = {[], [], [], [], [0 0 -Inf 0], [], []};
+fitparams.params = {[], [], [], [], [-Inf -Inf -Inf -Inf], [], []};
 
 model = fitmodel3(fitparams, fitdata);
 model = rmfield(model, 'fit');

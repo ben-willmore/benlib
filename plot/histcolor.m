@@ -4,7 +4,7 @@ if nargin==1
 	color = arg1;
 elseif nargin==2
 	axnum = arg1;
-	color = arg2
+	color = arg2;
 end
 
 axes(gca);
