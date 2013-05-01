@@ -7,7 +7,7 @@ for ii = 1:length(dirnames)
   try
  	getfilesmatching([dir filesep 'raw.f32/*.f32']);
   catch
-  	return
+	continue;
   end
   gzipfilesmatching([dir filesep 'raw.f32/*.f32']);
 end
