@@ -1,4 +1,5 @@
 function data = readf32(filename)
+error('obsolete -- use f32read instead');
 
 f = fopen(filename,'r');
 if (f==-1)
