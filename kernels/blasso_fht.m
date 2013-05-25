@@ -1,8 +1,15 @@
-function kernel = blasso_fht(X_fht, y_t)
+function kernel = blasso_fht(X_fht, y_t, vararg)
 
-params = struct;
-params.display_kernel = false;
-params.suppress_display = true;
+if exist('vararg', 'var') && isstruct(vararg)
+  params = vararg;
+else
+  params = struct;
+  params.display_kernel = false;
+  params.suppress_display = true;
+  if exist('vararg', 'var') && isscalar(vararg)
+  	params.epsilon = vararg;
+  end
+end
 
 [n_f, n_h, n_t] = size(X_fht);
 

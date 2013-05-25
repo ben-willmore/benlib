@@ -1,6 +1,8 @@
 function [beta, xcs, beta_history] = blasso(X,Y,params,Xv,Yv,Xp,Yp)
     % function [beta, xcs] = blasso(X,Y,params,Xv,Yv,Xp,Yp)
     %
+    % This is made irrelevant by glmnet (see elnet_fht)
+    %
     % main boosting core code
     %   - original: bw 2006-11
     %   - updated: ncr 2008-05-28
