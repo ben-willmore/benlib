@@ -1,4 +1,7 @@
 function col = bluered(nsteps, step)
+% function col = bluered(nsteps, step)
+%
+% blue to red colours for plotting (not colourmap)
 
 if ~exist('step', 'var') || isinteger(step)
 	step = 1:nsteps;
