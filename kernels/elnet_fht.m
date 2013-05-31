@@ -1,27 +1,33 @@
-function [kernel, allKernels, res] = elnet_fht(X_fht, y_t, params)
+function [kernel, allKernels, res] = elnet_fht(X_fht, y_t, varargin)
 % function [kernel, res] = elnet_fht(X_fht, y_t, params)
 % 
 % Elastic net kernel estimation using glmnet
 % X_fht -- fxhxt "tensorised" stimulus
 % y_t   -- 1xt response vector
-% params -- 'lasso', 'ridge', a vector of alpha values
-%           or a whole options structre as
+% varargin -- 'lasso' or 'ridge'
+%             an options structure as produced by glmnetSet except 
+% 					alpha may be a vector, o
+% 			  a list of indices to use for cross-validation
 
 % process parameters
-if exist('params', 'var')
-	if (isstr(params))
-		if strcmp(params, 'lasso')
+while ~isempty(varargin)
+	v = varargin{1};
+	if isstr(v)
+		if strcmp(v, 'lasso')
 		  alphas = 1;
-		elseif strcmp(params, 'ridge')
+		elseif strcmp(v, 'ridge')
 		  alphas = 0.01; % minimum "reliable" value for glmnet
 		end
 
-	elseif isvector(params)
-		alphas = params;
+	elseif isnumeric(v)
+		val_idx = v;
 
-	elseif isstruct(params)
-		options = params;
+	elseif isstruct(v)
+		options = v;
+	else
+		error('unreocognised parameter');
 	end
+	varargin = varargin(2:end);
 end
 
 if ~exist('options', 'var')
@@ -41,14 +47,20 @@ X_t_fh = reshape(X_fht, n_f*n_h, n_t)';
 y_t = y_t(:);
 
 % get 10% of data for choosing hyperparameters (lambda, alpha)
-val_prop = 0.1;
-n_fit = ceil((1-0.1)*n_t);
-r = randperm(n_t);
-X_fit = X_t_fh(r(1:n_fit), :);
-y_fit = y_t(r(1:n_fit));
+if ~exist('val_idx', 'var')
+	val_prop = 0.1;
+	n_val = ceil(val_prop*n_t);
+	r = randperm(n_t);
+	val_idx = r(1:n_val);
+end
 
-X_val = X_t_fh(r(n_fit+1:end), :);
-y_val = y_t(r(n_fit+1:end));
+fit_idx = setdiff(1:n_t, val_idx);
+
+X_fit = X_t_fh(fit_idx, :);
+y_fit = y_t(fit_idx);
+
+X_val = X_t_fh(val_idx, :);
+y_val = y_t(val_idx);
 
 % get kernels for a range of lambdas and alphas
 result = {};

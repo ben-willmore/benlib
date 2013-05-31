@@ -7,8 +7,10 @@ function varargout = imagescn(varargin)
   h = imagesc(varargin{:});
   im = varargin{1};
   mx = max(abs(im(:)));
-  clim([-mx mx]);
-
+  try
+	  clim([-mx mx]);
+  end
+  
   if nargout == 1
   	varargout = {h};
   end

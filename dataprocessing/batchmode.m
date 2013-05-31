@@ -102,6 +102,10 @@ end
 
 diary off;
 
+try
+  result = [result{:}];
+end
+
 if length(result)
  [varargout{1:nargout}] = result;
 end
