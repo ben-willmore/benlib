@@ -13,7 +13,7 @@ function batchmode_parallel(fn, filespec, varargin)
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
 % attempt to open a pool
-  if ~matlabpool('size') == 0
+if matlabpool('size') == 0
   matlabpool;
 end
 
