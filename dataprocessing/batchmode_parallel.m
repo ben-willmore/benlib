@@ -12,6 +12,11 @@ function varargout = batchmode(fn, filespec, varargin)
 
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
+% attempt to open a pool
+if ~matlabpool('size') == 0
+  matlabpool;
+end
+
 reverse = false;
 if ~isempty(varargin) && isstr(varargin{end})
   if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
@@ -35,7 +40,7 @@ end
 % overcomplicated formatting of parameters for printing in log file
 paramsdot = [];
 paramscomma = [];
-for ii = 1:length(varargin)
+parfor ii = 1:length(varargin)
   if isstr(varargin{ii})
     pstr = varargin{ii};
     paramsdot = [paramsdot pstr '.'];
