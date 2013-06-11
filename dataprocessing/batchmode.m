@@ -1,4 +1,4 @@
-function batchmodepar(fn, filespec, varargin)
+function varargout = batchmode(fn, filespec, varargin)
 % function batchmode(fn, filepattern, varargin)
 % 
 % Applies a function to all files matching filepattern
@@ -73,16 +73,39 @@ nargs = nargout(fn);
 result = {};
 
 % loop through files
-parfor ii = 1:length(files)
+for ii = 1:length(files)
   diary on;
   file = files{ii};
   fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
   try
-    feval(fn, file, varargin{:});
+    if nargs==0
+      feval(fn, file, varargin{:});
+    elseif nargs<0 || nargs==1
+      out = feval(fn, file, varargin{:});
+      result{end+1} = out;
+    else
+      [out{1:nargs}] = feval(fn, file, varargin{:});
+      result{end+1} = out;
+    end
+    
+    fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
+
   catch
-    fprintf('failed!\n');
+    warning(lasterr);
+    fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
+
   end
 
   diary off;
+end
+
+diary off;
+
+try
+  result = [result{:}];
+end
+
+if length(result)
+ [varargout{1:nargout}] = result;
 end

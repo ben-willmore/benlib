@@ -1,4 +1,4 @@
-function varargout = batchmode(fn, filespec, varargin)
+function batchmode_parallel(fn, filespec, varargin)
 % function batchmode(fn, filepattern, varargin)
 % 
 % Applies a function to all files matching filepattern
@@ -13,7 +13,7 @@ function varargout = batchmode(fn, filespec, varargin)
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
 % attempt to open a pool
-if ~matlabpool('size') == 0
+  if ~matlabpool('size') == 0
   matlabpool;
 end
 
@@ -40,7 +40,7 @@ end
 % overcomplicated formatting of parameters for printing in log file
 paramsdot = [];
 paramscomma = [];
-parfor ii = 1:length(varargin)
+for ii = 1:length(varargin)
   if isstr(varargin{ii})
     pstr = varargin{ii};
     paramsdot = [paramsdot pstr '.'];
@@ -78,39 +78,16 @@ nargs = nargout(fn);
 result = {};
 
 % loop through files
-for ii = 1:length(files)
+parfor ii = 1:length(files)
   diary on;
   file = files{ii};
   fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
   try
-    if nargs==0
-      feval(fn, file, varargin{:});
-    elseif nargs<0 || nargs==1
-      out = feval(fn, file, varargin{:});
-      result{end+1} = out;
-    else
-      [out{1:nargs}] = feval(fn, file, varargin{:});
-      result{end+1} = out;
-    end
-    
-    fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
-
+    feval(fn, file, varargin{:});
   catch
-    warning(lasterr);
-    fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
-
+    fprintf('failed!\n');
   end
 
   diary off;
-end
-
-diary off;
-
-try
-  result = [result{:}];
-end
-
-if length(result)
- [varargout{1:nargout}] = result;
 end
