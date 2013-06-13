@@ -1,4 +1,4 @@
-function X_fht = getstimulushistory(X_ft, dt, bins)
+function X_fht = getstimulushistory(X_ft, dt, bins, type)
 % function X_fht = getstimulushistory(X_ft, dt, bins)
 % 
 % Add a history dimension to a stimulus matrix, using non-uniform bins
@@ -9,6 +9,10 @@ function X_fht = getstimulushistory(X_ft, dt, bins)
 % 
 % Outputs:
 %  X_fht -- stimulus matrix with non-uniformly sampled history
+
+if ~exist('type', 'var')
+	type = 'sum';
+else
 
 [n_f, n_t] = size(X_ft);
 n_h = length(bins)-1;
@@ -23,7 +27,12 @@ for t_idx = 1:n_t
   	mx = t_idx-idx(h_idx);
 
   	if mx>0
-	  X_fht(:, n_h+1-h_idx, t_idx) = sum(X_ft(:, max(mn,1):mx), 2);
+  	  if strcmp(type, 'sum')
+	    X_fht(:, n_h+1-h_idx, t_idx) = sum(X_ft(:, max(mn,1):mx), 2);
+	  elseif strcmp(type, 'mean')
+	    X_fht(:, n_h+1-h_idx, t_idx) = sum(X_ft(:, max(mn,1):mx), 2);
+      else
+      	error('unknown type -- should be mean or sum')
 	end
   end
 end
