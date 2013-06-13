@@ -12,7 +12,7 @@ function X_fht = getstimulushistory(X_ft, dt, bins, type)
 
 if ~exist('type', 'var')
 	type = 'sum';
-else
+end
 
 [n_f, n_t] = size(X_ft);
 n_h = length(bins)-1;
