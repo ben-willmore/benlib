@@ -33,6 +33,7 @@ for t_idx = 1:n_t
 	    X_fht(:, n_h+1-h_idx, t_idx) = sum(X_ft(:, max(mn,1):mx), 2);
       else
       	error('unknown type -- should be mean or sum')
+      end
 	end
   end
 end
