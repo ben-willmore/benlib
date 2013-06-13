@@ -12,16 +12,23 @@ function batchmode_parallel(fn, filespec, varargin)
 
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
-% attempt to open a pool
-  if ~matlabpool('size') == 0
-  matlabpool;
-end
-
 reverse = false;
 if ~isempty(varargin) && isstr(varargin{end})
   if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
     reverse = true;
     varargin = varargin(1:end-1);
+  end
+  if length(varargin)>1 && strcmpi(varargin{end-1}, 'poolsize')
+    poolsize = varargin{end};
+    varargin = varargin(1:end-2);
+end
+
+% attempt to open a pool
+if ~matlabpool('size') == 0
+  if exist('poolsize', 'var')
+    matlabpool(poolsize);
+  else
+    matlabpool;
   end
 end
 
