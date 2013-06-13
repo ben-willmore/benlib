@@ -13,10 +13,17 @@ function varargout = batchmode(fn, filespec, varargin)
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
 reverse = false;
-if ~isempty(varargin) && isstr(varargin{end})
+shouldPause = false;
+done = false;
+while ~isempty(varargin) && isstr(varargin{end}) && ~done
   if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
     reverse = true;
     varargin = varargin(1:end-1);
+  elseif strcmp(varargin{end}, 'pause')
+    shouldPause = true;
+    varargin = varargin(1:end-1);
+  else
+    done = true;
   end
 end
 
@@ -98,6 +105,10 @@ for ii = 1:length(files)
   end
 
   diary off;
+  
+  if shouldPause;
+      pause;
+  end
 end
 
 diary off;

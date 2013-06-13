@@ -5,7 +5,7 @@ function varargout = imagescn(varargin)
 % symmetric about zero
 
   h = imagesc(varargin{:});
-  im = varargin{1};
+  im = get(h, 'CData');
   mx = max(abs(im(:)));
   try
 	  clim([-mx mx]);
