@@ -1,4 +1,4 @@
-function X_fht = getstimulushistory(X_ft, dt, bins, type)
+function [X_fht, t] = getstimulushistory(X_ft, dt, bins, dt_new, type)
 % function X_fht = getstimulushistory(X_ft, dt, bins)
 % 
 % Add a history dimension to a stimulus matrix, using non-uniform bins
@@ -9,6 +9,10 @@ function X_fht = getstimulushistory(X_ft, dt, bins, type)
 % 
 % Outputs:
 %  X_fht -- stimulus matrix with non-uniformly sampled history
+
+if ~exist('dt_new', 'var')
+	dt_new = dt;
+end
 
 if ~exist('type', 'var')
 	type = 'sum';
@@ -36,4 +40,13 @@ for t_idx = 1:n_t
       end
 	end
   end
+end
+
+if mod(dt_new, dt)~=0
+  error('getstimulushistory only implemented for dt_new an integer multiple of dt');
+elseif dt_new~=dt
+  step = dt_new/dt;
+  X_fht = X_fht(:, :, 1:step:end);
+  t = (1:size(X_fht, 3))-1;
+  t = t*dt;
 end
