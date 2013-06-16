@@ -52,16 +52,17 @@ fprintf('parallel=%s, pause=%s, reverse=%s, poolsize=%d\n', ...
 
 if parallel
   % attempt to open a pool
-  if matlabpool('size') == 0
+  if matlabpool('size') ~= 0
+    matlabpool close;
+  end
+
+  if isinf(poolsize)
     matlabpool;
   else
-    matlabpool close;
-    if isinf(poolsize)
-      matlabpool;
-    else
-      matlabpool(poolsize);
-    end
+    matlabpool(poolsize);
   end
+
+  pause(2);
 end 
 
 if isstr(fn)
@@ -122,7 +123,7 @@ if ~parallel
   for ii = 1:length(files)
     diary on;
     file = files{ii};
-    fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
+    fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
     try
       if nargs==0
@@ -156,9 +157,11 @@ else
   % parallel
 
   parfor ii = 1:length(files)
+    t = getCurrentTask();
+    worker = t.ID;
     diary on;
     file = files{ii};
-    fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
+    fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
     try
       feval(fn, file, varargin{:});      
