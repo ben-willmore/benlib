@@ -14,18 +14,55 @@ function varargout = batchmode(fn, filespec, varargin)
 
 reverse = false;
 shouldPause = false;
+if feature('ShowFigureWindows')
+  % by default, use parallel processing if matlab was called with -nodisplay
+  parallel = false;
+else
+  % by default, otherwise, no parallel
+  parallel = true;
+end
+poolsize = Inf;
+
 done = false;
-while ~isempty(varargin) && isstr(varargin{end}) && ~done
+while ~isempty(varargin) && ~done
   if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
     reverse = true;
     varargin = varargin(1:end-1);
   elseif strcmp(varargin{end}, 'pause')
+    % ignored if parallel==true
     shouldPause = true;
     varargin = varargin(1:end-1);
+  elseif strcmp(varargin{end}, 'parallel')
+    parallel = true;
+    varargin = varargin(1:end-1);
+  elseif strcmp(varargin{end}, 'noparallel')
+    parallel = false;
+    varargin = varargin(1:end-1);
+  elseif length(varargin)>1 && strcmpi(varargin{end-1}, 'poolsize')
+    poolsize = varargin{end};
+    varargin = varargin(1:end-2);
   else
     done = true;
   end
 end
+
+falsetrue = {'false','true'};
+fprintf('parallel=%s, pause=%s, reverse=%s, poolsize=%d\n', ...
+  falsetrue{parallel+1}, falsetrue{shouldPause+1}, falsetrue{reverse+1}, poolsize);
+
+if parallel
+  % attempt to open a pool
+  if matlabpool('size') == 0
+    matlabpool;
+  else
+    matlabpool close;
+    if isinf(poolsize)
+      matlabpool;
+    else
+      matlabpool(poolsize);
+    end
+  end
+end 
 
 if isstr(fn)
   fnstr = fn;
@@ -80,35 +117,62 @@ nargs = nargout(fn);
 result = {};
 
 % loop through files
-for ii = 1:length(files)
-  diary on;
-  file = files{ii};
-  fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
+if ~parallel
+  % not parallel
+  for ii = 1:length(files)
+    diary on;
+    file = files{ii};
+    fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
-  try
-    if nargs==0
-      feval(fn, file, varargin{:});
-    elseif nargs<0 || nargs==1
-      out = feval(fn, file, varargin{:});
-      result{end+1} = out;
-    else
-      [out{1:nargs}] = feval(fn, file, varargin{:});
-      result{end+1} = out;
+    try
+      if nargs==0
+        feval(fn, file, varargin{:});
+      elseif nargs<0 || nargs==1
+        out = feval(fn, file, varargin{:});
+        result{end+1} = out;
+      else
+        [out{1:nargs}] = feval(fn, file, varargin{:});
+        result{end+1} = out;
+      end
+      
+      fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
+
+    catch
+      warning(lasterr);
+      fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
+
     end
+
+    diary off;
     
-    fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
-
-  catch
-    warning(lasterr);
-    fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
-
+    if shouldPause;
+        fprintf('Pausing...')
+        pause;
+        fprintf('\n');
+    end
   end
 
-  diary off;
-  
-  if shouldPause;
-      pause;
+else
+  % parallel
+
+  parfor ii = 1:length(files)
+    diary on;
+    file = files{ii};
+    fprintf(['== Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
+
+    try
+      feval(fn, file, varargin{:});      
+      fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
+
+    catch
+      warning(lasterr);
+      fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
+
+    end
+
+    diary off;
   end
+
 end
 
 diary off;

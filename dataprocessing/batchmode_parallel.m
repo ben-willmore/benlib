@@ -12,6 +12,11 @@ function batchmode_parallel(fn, filespec, varargin)
 
 % e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
 
+batchmode(fn, filespec, 'parallel', varargin);
+
+return;
+
+%% no longer used
 reverse = false;
 if ~isempty(varargin)
   if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
