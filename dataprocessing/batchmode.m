@@ -121,7 +121,6 @@ result = {};
 if ~parallel
   % not parallel
   for ii = 1:length(files)
-    diary on;
     file = files{ii};
     fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
@@ -143,8 +142,6 @@ if ~parallel
       fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
 
     end
-
-    diary off;
     
     if shouldPause;
         fprintf('Pausing...')
@@ -157,23 +154,25 @@ else
   % parallel
 
   parfor ii = 1:length(files)
+    if ii==length(files)
+      fprintf('!! Queueing last job\n');
+    end
+
     t = getCurrentTask();
     worker = t.ID;
-    diary on;
     file = files{ii};
     fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
     try
       feval(fn, file, varargin{:});      
-      fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
+      fprintf(['-> ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': ' fnstr ' ' file  ' success\n\n']);
 
     catch
       warning(lasterr);
-      fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
+         fprintf(['-> ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': ' fnstr ' ' file  ' success\n\n']);
 
     end
 
-    diary off;
   end
 
 end
