@@ -173,16 +173,11 @@ result = {};
 % loop through files
 if ~parallel
   % not parallel
-<<<<<<< HEAD
-  for ii = 1:length(files)
-    file = files{ii};
-    fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
-=======
+
   for ii = 1:length(cmds)
     cmd = cmds(ii);
-    diary on;
+
     fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
->>>>>>> 878c6ea4c9e3275dfbf08f578df33291ee5440a1
 
     try
       if nargs==0
@@ -202,7 +197,7 @@ if ~parallel
       fprintf('-> %s: failure\n\n', cmd.strcomma);
 
     end
-    
+
     if shouldPause;
         fprintf('Pausing...')
         pause;
@@ -213,40 +208,25 @@ if ~parallel
 else
   % parallel
 
-<<<<<<< HEAD
-  parfor ii = 1:length(files)
+  parfor ii = 1:length(cmds)
+
     if ii==length(files)
       fprintf('!! Queueing last job\n');
     end
 
     t = getCurrentTask();
     worker = t.ID;
-    file = files{ii};
-    fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
 
-    try
-      feval(fn, file, varargin{:});      
-      fprintf(['-> ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': ' fnstr ' ' file  ' success\n\n']);
-
-    catch
-      warning(lasterr);
-         fprintf(['-> ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': ' fnstr ' ' file  ' success\n\n']);
-=======
-  parfor ii = 1:length(cmds)
-    t = getCurrentTask();
-    worker = t.ID;
-    diary on;
     cmd = cmds(ii);
-    fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
+    fprintf('== %s, Lab %d: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     try
       feval(cmd.cell{:});    
-      fprintf('-> %s: success\n\n', cmd.strcomma);
+      fprintf('-> % Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf('-> %s: failure\n\n', cmd.strcomma);
->>>>>>> 878c6ea4c9e3275dfbf08f578df33291ee5440a1
+      fprintf('-> % Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     end
 
