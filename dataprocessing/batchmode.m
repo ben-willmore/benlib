@@ -175,7 +175,7 @@ if ~parallel
   % not parallel
   for ii = 1:length(cmds)
     cmd = cmds(ii);
-    diary on;
+
     fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
 
     try
@@ -197,8 +197,6 @@ if ~parallel
 
     end
 
-    diary off;
-    
     if shouldPause;
         fprintf('Pausing...')
         pause;
@@ -212,21 +210,20 @@ else
   parfor ii = 1:length(cmds)
     t = getCurrentTask();
     worker = t.ID;
-    diary on;
+
     cmd = cmds(ii);
-    fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
+    fprintf('== %s, Lab %d: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     try
       feval(cmd.cell{:});    
-      fprintf('-> %s: success\n\n', cmd.strcomma);
+      fprintf('-> % Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf('-> %s: failure\n\n', cmd.strcomma);
+      fprintf('-> % Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     end
 
-    diary off;
   end
 
 end
