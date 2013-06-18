@@ -22,25 +22,29 @@ else
   parallel = true;
 end
 poolsize = Inf;
-
+keyboard
 done = false;
 while ~isempty(varargin) && ~done
-  if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
-    reverse = true;
-    varargin = varargin(1:end-1);
-  elseif strcmp(varargin{end}, 'pause')
-    % ignored if parallel==true
-    shouldPause = true;
-    varargin = varargin(1:end-1);
-  elseif strcmp(varargin{end}, 'parallel')
-    parallel = true;
-    varargin = varargin(1:end-1);
-  elseif strcmp(varargin{end}, 'noparallel')
-    parallel = false;
-    varargin = varargin(1:end-1);
-  elseif length(varargin)>1 && strcmpi(varargin{end-1}, 'poolsize')
-    poolsize = varargin{end};
-    varargin = varargin(1:end-2);
+  if isstr(varargin{end}) || isscalar(varargin{end})
+    if strcmp(varargin{end}, 'reverse') || strcmp(varargin{end}, 'flip')
+      reverse = true;
+      varargin = varargin(1:end-1);
+    elseif strcmp(varargin{end}, 'pause')
+      % ignored if parallel==true
+      shouldPause = true;
+      varargin = varargin(1:end-1);
+    elseif strcmp(varargin{end}, 'parallel')
+      parallel = true;
+      varargin = varargin(1:end-1);
+    elseif strcmp(varargin{end}, 'noparallel')
+      parallel = false;
+      varargin = varargin(1:end-1);
+    elseif length(varargin)>1 && strcmpi(varargin{end-1}, 'poolsize')
+      poolsize = varargin{end};
+      varargin = varargin(1:end-2);
+    else
+      done = true;
+    end
   else
     done = true;
   end
@@ -65,41 +69,27 @@ if parallel
   pause(2);
 end 
 
-if isstr(fn)
-  fnstr = fn;
-else
-  fnstr = func2str(fn);
-end
-
-% create log dir if it doesn't exist
-logdir = './batch.log';
-if ~exist(logdir, 'dir')
-  mkdir(logdir);
-end
-
-% overcomplicated formatting of parameters for printing in log file
-paramsdot = [];
-paramscomma = [];
-for ii = 1:length(varargin)
-  if isstr(varargin{ii})
-    pstr = varargin{ii};
-    paramsdot = [paramsdot pstr '.'];
-    paramscomma = [paramscomma ', ''' pstr ''''];
-  elseif isnumeric(varargin{ii}) && isscalar(varargin{ii})
-    pstr = num2str(varargin{ii});
-    paramsdot = [paramsdot pstr '.'];
-    paramscomma = [paramscomma ', ' pstr];
-  else
-    pstr = '.';
+if isa(fn, 'function_handle')
+  % then we have a single function 
+  fns = {fn};
+  args = {varargin};
+elseif isstr(fn)
+  % then we have a single function 
+  fns = {str2func(fn)};
+  args = {varargin};
+elseif iscell(fn)
+  % then we have a cell array of functions
+  fns = {};
+  for ii = 1:length(fn)
+    if isa(fn, 'function_handle')
+      fns{ii} = fn{ii};
+    else
+      fns{ii} = str2func(fn{ii});
+    end
   end
+  assert(length(varargin)<=1);
+  args = varargin;
 end
-
-% logfile filename
-logfile = [logdir filesep datestr(now, 'yyyy.mm.dd_HH.MM') '.' ...
-	   fnstr '.' paramsdot 'log'];
-	   
-% start saving output to logfile
-diary(logfile);
 
 % find files matching filespec (unless it is already a list)
 if isstr(filespec)
@@ -108,9 +98,72 @@ else
   files = filespec;
 end
 
+% construct commands
+cmds = {};
+for fnIdx = 1:length(fns)
+  fn = fns{fnIdx};
+  fnstr = func2str(fn);
+  
+  if isempty(args)
+    arg = {};
+  else
+    arg = args{fnIdx};
+  end
+  
+  for fileIdx = 1:length(files)
+    file = files{fileIdx};
+
+    cmd = struct;
+    cmd.cell = {fn, file, arg{:}};
+    cmd.fnstr = fnstr;
+
+    % overcomplicated formatting of parameters for printing in log file
+    paramsdot = [];
+    paramscomma = [];
+    for ii = 1:length(varargin)
+      if isstr(varargin{ii})
+        pstr = varargin{ii};
+        paramsdot = [paramsdot pstr '.'];
+        paramscomma = [paramscomma ', ''' pstr ''''];
+      elseif isnumeric(varargin{ii}) && isscalar(varargin{ii})
+        pstr = num2str(varargin{ii});
+        paramsdot = [paramsdot pstr '.'];
+        paramscomma = [paramscomma ', ' pstr];
+      else
+        pstr = '.';
+      end
+    end
+    cmd.strdot = sprintf('%s.%s', func2str(fn), paramsdot);
+    if isempty(paramscomma)
+      cmd.strcomma = sprintf('%s(''%s'')', fnstr, file);
+    else
+      cmd.strcomma = sprintf('%s(''%s'', %s)', fnstr, file, paramscomma);
+    end
+    cmds{end+1} = cmd;
+  end
+end
+cmds = [cmds{:}];
+
+% create log dir if it doesn't exist
+logdir = './batch.log';
+if ~exist(logdir, 'dir')
+  mkdir(logdir);
+end
+
+% logfile filename
+if length(fns)==1
+  logfile = [logdir filesep datestr(now, 'yyyy.mm.dd_HH.MM') '.' ...
+	   cmd(1).strdot 'log'];
+else
+  logfile = [logdir filesep datestr(now, 'yyyy.mm.dd_HH.MM') '.multiple.log'];
+end
+
+% start saving output to logfile
+diary(logfile);
+
 % reverse order in which files will be processed
 if reverse
-  files = flipud(files);
+  cmds = flipud(cmds);
 end
 
 % do it
@@ -120,26 +173,33 @@ result = {};
 % loop through files
 if ~parallel
   % not parallel
+<<<<<<< HEAD
   for ii = 1:length(files)
     file = files{ii};
     fprintf(['== ' datestr(now, 'yyyy.mm.dd HH.MM') ': Running ' fnstr '(''' file '''' paramscomma ') ...\n']);
+=======
+  for ii = 1:length(cmds)
+    cmd = cmds(ii);
+    diary on;
+    fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
+>>>>>>> 878c6ea4c9e3275dfbf08f578df33291ee5440a1
 
     try
       if nargs==0
-        feval(fn, file, varargin{:});
+        feval(cmd.cell{:});
       elseif nargs<0 || nargs==1
-        out = feval(fn, file, varargin{:});
+        out = feval(cmd.cell{:});
         result{end+1} = out;
       else
-        [out{1:nargs}] = feval(fn, file, varargin{:});
+        [out{1:nargs}] = feval(cmd.cell{:});
         result{end+1} = out;
       end
       
-      fprintf(['-> ' fnstr ' ' file  ' success\n\n']);
+      fprintf('-> %s: success\n\n', cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf(['-> ' fnstr ' ' file  ' failure\n\n']);
+      fprintf('-> %s: failure\n\n', cmd.strcomma);
 
     end
     
@@ -153,6 +213,7 @@ if ~parallel
 else
   % parallel
 
+<<<<<<< HEAD
   parfor ii = 1:length(files)
     if ii==length(files)
       fprintf('!! Queueing last job\n');
@@ -170,6 +231,22 @@ else
     catch
       warning(lasterr);
          fprintf(['-> ' datestr(now, 'yyyy.mm.dd HH.MM') ', Lab ' num2str(worker) ': ' fnstr ' ' file  ' success\n\n']);
+=======
+  parfor ii = 1:length(cmds)
+    t = getCurrentTask();
+    worker = t.ID;
+    diary on;
+    cmd = cmds(ii);
+    fprintf('== %s: Running %s ...\n', datestr(now, 'yyyy.mm.dd HH.MM'), cmd.strcomma);
+
+    try
+      feval(cmd.cell{:});    
+      fprintf('-> %s: success\n\n', cmd.strcomma);
+
+    catch
+      warning(lasterr);
+      fprintf('-> %s: failure\n\n', cmd.strcomma);
+>>>>>>> 878c6ea4c9e3275dfbf08f578df33291ee5440a1
 
     end
 
@@ -178,10 +255,6 @@ else
 end
 
 diary off;
-
-try
-  result = [result{:}];
-end
 
 if length(result)
  [varargout{1:nargout}] = result;
