@@ -172,7 +172,6 @@ for fnIdx = 1:length(fns)
       cmd.strcomma = sprintf('%s(''%s'')', fnstr, file);
     else
       cmd.strcomma = sprintf('%s(''%s''%s)', fnstr, file, paramscomma);
-      keyboard
     end
     cmds{end+1} = cmd;
   end
