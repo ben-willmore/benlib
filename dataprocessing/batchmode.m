@@ -222,11 +222,11 @@ else
 
     try
       feval(cmd.cell{:});    
-      fprintf('-> % Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
+      fprintf('-> %s Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf('-> % Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
+      fprintf('-> %s Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     end
 
