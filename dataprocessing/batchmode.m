@@ -224,11 +224,11 @@ if ~parallel
         result{end+1} = out;
       end
       
-      fprintf('-> %s: success\n\n', cmd.strcomma);
+      fprintf('=> %s: success\n\n', cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf('-> %s: failure\n\n', cmd.strcomma);
+      fprintf('=> %s: failure\n\n', cmd.strcomma);
 
     end
 
@@ -245,7 +245,7 @@ else
   parfor ii = 1:length(cmds)
 
     if ii==length(files)
-      fprintf('!! Queueing last job\n');
+      fprintf('II Queueing last job\n');
     end
 
     t = getCurrentTask();
@@ -256,11 +256,11 @@ else
 
     try
       feval(cmd.cell{:});    
-      fprintf('-> %s Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
+      fprintf('=> %s Lab %d: %s -> success\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     catch
       warning(lasterr);
-      fprintf('-> %s Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
+      fprintf('=> %s Lab %d: %s -> failure\n\n', datestr(now, 'yyyy.mm.dd HH.MM'), worker, cmd.strcomma);
 
     end
 
