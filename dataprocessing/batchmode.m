@@ -1,17 +1,45 @@
 function varargout = batchmode(fn, filespec, varargin)
 % function batchmode(fn, filepattern, varargin)
 % 
-% Applies a function to all files matching filepattern
+% Applies a function, fn,  to all files matching filepattern (with extra
+% parameters varargin{:}), optionally in parallel on multiple workers in 
+% a matlab pool.
 % 
 % Inputs:
-%  fn -- function name or handle
+%  fn -- function name or handle (or cell array of either)
 %  filespec -- pattern the files should match, or list of files
 %  varargin -- parameters that will be passed to fn
-%  ..., 'reverse' or 'flip' -- last argument should be one of these
-%    if you want the files to be processed in reverse order
+%  ..., 'reverse' or 'flip' -- process commands in reverse order
+%  ..., 'parallel' -- open a local matlabpool and use parfor to process
+%  ..., 'noparallel' -- don't
+%  ..., 'pause' -- pause after each iteration (ignored if parallel=true)
+%  ..., 'poolsize', n -- restrict matlabpool size to n
+%
+%  If fn is a cell array, varargin should have length 0 (no parameters)
+%  or 1, in which case varargin{1} is a cell array of parameters to be 
+%  passed to each of the functions specified in fn. This is useful when
+%  running in parallel because it stops the cluster running out of jobs
+%  when 1 job in a batch is very slow.
+% 
+%  By default, parallel=true if matlab is running with -nodisplay; otherwise
+%  parallel=false, but both can be overridden.
+% 
+% Outputs:
+%  varargout{1} = a cell array of outputs from the jobs only if parallel=false
+%  If parallel=true, there is no output
+% 
+% Examples:
+% Single batch, no output:
+% batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25);
+%
+% Single batch, with output:
+% results = batchmode('getvar', './metadata/*.mat', 'results');
+% 
+% Multiple batches
+% batchmode({'compute_csdkernel'; 'compute_csdkernel2'}, ...
+%                 './metadata/*.mat', {{10, 6.25, 6.25}, {15, 12.5, 12.}});
 
-% e.g. batchmode('compute_csdkernel', './metadata/*.mat', 10, 6.25, 6.25)
-
+% default parameters
 reverse = false;
 shouldPause = false;
 if feature('ShowFigureWindows')
@@ -23,6 +51,9 @@ else
 end
 poolsize = Inf;
 
+% parse parameters by working backwards until we no longer recognise 
+% the parameter as a special one; of course this means that the last parameter
+% passed to fn can't be a member of this set
 done = false;
 while ~isempty(varargin) && ~done
   if isstr(varargin{end}) || isscalar(varargin{end})
@@ -50,10 +81,12 @@ while ~isempty(varargin) && ~done
   end
 end
 
+% print the parameters
 falsetrue = {'false','true'};
 fprintf('parallel=%s, pause=%s, reverse=%s, poolsize=%d\n', ...
   falsetrue{parallel+1}, falsetrue{shouldPause+1}, falsetrue{reverse+1}, poolsize);
 
+% open a pool if necessary
 if parallel
   % attempt to open a pool
   if matlabpool('size') ~= 0
@@ -69,6 +102,7 @@ if parallel
   pause(2);
 end 
 
+% parse the function names and arguments
 if isa(fn, 'function_handle')
   % then we have a single function 
   fns = {fn};
@@ -98,7 +132,7 @@ else
   files = filespec;
 end
 
-% construct commands
+% construct a list of commands to be executed
 cmds = {};
 for fnIdx = 1:length(fns)
   fn = fns{fnIdx};
@@ -120,7 +154,7 @@ for fnIdx = 1:length(fns)
     % overcomplicated formatting of parameters for printing in log file
     paramsdot = [];
     paramscomma = [];
-    for ii = 1:length(varargin)
+    for ii = 1:length(arg)
       if isstr(varargin{ii})
         pstr = varargin{ii};
         paramsdot = [paramsdot pstr '.'];
@@ -153,7 +187,7 @@ end
 % logfile filename
 if length(fns)==1
   logfile = [logdir filesep datestr(now, 'yyyy.mm.dd_HH.MM') '.' ...
-	   cmd(1).strdot 'log'];
+	   cmds(1).strdot 'log'];
 else
   logfile = [logdir filesep datestr(now, 'yyyy.mm.dd_HH.MM') '.multiple.log'];
 end
@@ -161,16 +195,16 @@ end
 % start saving output to logfile
 diary(logfile);
 
-% reverse order in which files will be processed
+% reverse the order in which files will be processed
 if reverse
   cmds = flipud(cmds);
 end
 
-% do it
+%% execute the commands in cmds
 nargs = nargout(fn);
 result = {};
 
-% loop through files
+% loop through cmds
 if ~parallel
   % not parallel
 
