@@ -155,12 +155,12 @@ for fnIdx = 1:length(fns)
     paramsdot = [];
     paramscomma = [];
     for ii = 1:length(arg)
-      if isstr(varargin{ii})
-        pstr = varargin{ii};
+      if isstr(arg{ii})
+        pstr = arg{ii};
         paramsdot = [paramsdot pstr '.'];
         paramscomma = [paramscomma ', ''' pstr ''''];
-      elseif isnumeric(varargin{ii}) && isscalar(varargin{ii})
-        pstr = num2str(varargin{ii});
+      elseif isnumeric(arg{ii}) && isscalar(arg{ii})
+        pstr = num2str(arg{ii});
         paramsdot = [paramsdot pstr '.'];
         paramscomma = [paramscomma ', ' pstr];
       else
@@ -172,6 +172,7 @@ for fnIdx = 1:length(fns)
       cmd.strcomma = sprintf('%s(''%s'')', fnstr, file);
     else
       cmd.strcomma = sprintf('%s(''%s'', %s)', fnstr, file, paramscomma);
+      keyboard
     end
     cmds{end+1} = cmd;
   end
