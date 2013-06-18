@@ -22,7 +22,7 @@ else
   parallel = true;
 end
 poolsize = Inf;
-keyboard
+
 done = false;
 while ~isempty(varargin) && ~done
   if isstr(varargin{end}) || isscalar(varargin{end})
@@ -88,7 +88,7 @@ elseif iscell(fn)
     end
   end
   assert(length(varargin)<=1);
-  args = varargin;
+  args = varargin{1};
 end
 
 % find files matching filespec (unless it is already a list)
