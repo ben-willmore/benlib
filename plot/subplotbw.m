@@ -4,18 +4,23 @@ if ~exist('separation','var')
   separation = .1;
 end
 
-prop = 1-separation;
-
 if ~exist('margin', 'var')
-	margin = .1;
+	margin = .05;
 end
 
 xnum = mod(p-1,n)+1;
 ynum = floor((p-1)/n)+1;
 
-xwid = prop/n*(1-margin);
-ywid = prop/m*(1-margin);
+xboxwid = (1-2*margin)/n;
+yboxwid = (1-2*margin)/m;
 
-xmin = margin/2 + (xnum-(1-margin))/n*(1-margin) + ((1-margin)/n-xwid)/2;
-ymin = margin/2 + (1-margin)-(ynum)/m*(1-margin) + ((1-margin)/m-ywid)/2;
-h = subplot('position',[xmin ymin xwid ywid]);
+xplotwid = xboxwid*(1-separation);
+yplotwid = yboxwid*(1-separation);
+
+xboxmargin = (xboxwid-xplotwid)/2;
+yboxmargin = (yboxwid-yplotwid)/2;
+
+xmin = margin + xboxwid*(xnum-1) + xboxmargin;
+ymin = 1 - (margin + yboxwid*(m-ynum) + yboxmargin);
+
+h = subplot('position',[xmin 1-ymin xplotwid yplotwid]);
