@@ -6,7 +6,7 @@ t = getCurrentTask();
 
 if ~isempty(t)
   worker = t.ID;
-  fprintf('-- Lab %d: ', worker);
+  fprintf('=  Lab %d: ', worker);
 end
 
 fprintf(varargin{:});
