@@ -15,8 +15,10 @@ function subsets = getfitpredsets2(idx, n_subsets, seed)
 %  seed -- random number generator seed
 
 % randomly permute data
-if exist('seed', 'var')
+if exist('seed', 'var') && isfinite(seed)
 	rand('seed', seed);
+else
+  seed = nan; % contiguous chunks
 end
 
 if length(idx)==1
@@ -24,7 +26,10 @@ if length(idx)==1
 end
 
 n_t = length(idx);
-idx = idx(randperm(n_t));
+
+if isfinite(seed)
+  idx = idx(randperm(n_t));
+end
 
 mean_n_per_subset = n_t/n_subsets;
 boundaries = round([1:mean_n_per_subset:n_t n_t+1]);
