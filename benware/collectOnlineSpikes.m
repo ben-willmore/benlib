@@ -7,8 +7,9 @@ if any(fileSpec=='*')
 	files = getfilesmatching(fileSpec);
 	sets = {};
 	fileIdx = 1;
-	fprintf('Reading %s\n', files{fileIdx});
+	fprintf('Reading %s...\n', files{fileIdx});
 	indata = readSRCfile(files{fileIdx});
+  fprintf('done\n')
 
 	for setIdx=1:length(indata.sets)
 		set = struct;

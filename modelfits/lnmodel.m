@@ -12,7 +12,11 @@ b = x(2); % y-range
 c = x(3); % x-location of inflexion point
 d = x(4); % max slope
 
-z_t = data.z_t;
+if isstruct(data)
+  z_t = data.z_t;
+else
+  z_t = data;
+end
 
 g = 1./(1+exp(-(z_t-c)/d));
 

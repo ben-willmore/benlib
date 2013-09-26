@@ -1,4 +1,4 @@
-function kernel = sepkerneltensor(X_fht, y_t)
+function kernel = sepkerneltensor(X_fht, y_t, niter)
 % function kernel = sepkerneltensor(X_fht, y_t)
 % 
 % Compute separable kernel from tensorized stimulus
@@ -8,7 +8,6 @@ function kernel = sepkerneltensor(X_fht, y_t)
 % Inputs:
 %  X_fht -- stimulus, freq x history x time
 %  y_t -- response, 1-D time series
-%  n_h -- number of history steps desired
 % 
 % Output:
 %  kernel.k_f -- frequency kernel
