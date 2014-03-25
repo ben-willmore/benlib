@@ -16,6 +16,8 @@ function drc = levels2drc(f_s, freqs, levels, chord_duration, ramp_duration)
 % * at every transition (inc start/end), there is a cosine ramp in amplitude, not level
 % * the first chord is the same as others
 % * the end is slightly different
+% 
+% NB THIS VERSION SHOULD OUTPUT SOUNDS IN PASCALS, SO THAT 1 UNIT RMS = 94DB
 
 drc.f_s = f_s;
 drc.freqs = freqs;
@@ -41,7 +43,7 @@ drc.total_samples = max(drc.chord_start_samples)-1 + drc.ramp_samples;
 drc.t = (0:(drc.total_samples-1))/drc.f_s;
 
 %% convert level to amplitude
-drc.amplitudes = 10.^(drc.levels/20);
+drc.amplitudes = 10.^((drc.levels-94)/20);
 
 %% build up stimulus, one tone at a time
 snd = [];
@@ -51,7 +53,7 @@ for freq_idx = 1:drc.n_freqs
 
 	% make carrier sinusoid
 	freq = drc.freqs(freq_idx);
-	carrier = sin(2*pi*freq*drc.t);
+	carrier = sin(2*pi*freq*drc.t)*sqrt(2); % RMS = 1
 
 	% make envelope
 	env = {};
@@ -86,5 +88,4 @@ for freq_idx = 1:drc.n_freqs
 end
 
 drc.example_envelope = env;
-
-drc.snd = snd/10000;
+drc.snd = snd;
