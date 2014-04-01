@@ -11,6 +11,9 @@ fitparams.model = @lnmodel;
 
 % data driven starting values (could also be used as priors)
 zrange = iqr(z_fit);
+if zrange==0
+  zrange = 0.001;
+end
 zmean = mean(z_fit);
 yrange = iqr(y_fit);
 ymin = prctile(y_fit, 25);
