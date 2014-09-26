@@ -1,33 +1,18 @@
-function files = getfilesmatching(pattern)
-% get files matching a unix pattern
+function data = getfilesmatching(searchstring, condition)
 
 if ispc
-   strings = ls(pattern);
-   list = [];
+  searchstring = strrep(searchstring,'/','\');  % convert "/" filesep into ugly "\"
+end
 
-   f = find(pattern==filesep, 1, 'last');
-   dirname = pattern(1:f);
-   
-   for ii = 1:size(strings, 1);
-       % strip trailing spaces
-       filename = regexprep(strings(ii, :), '\s*$', '');
-       
-       % add directory name
-       list = [list dirname filename sprintf('\t')];
-   end
-   % strip trailing tab character
-   if length(list)>0
-       list = list(1:end-1);
-   end
+if exist('condition', 'var')
+  temp = rdir(searchstring, condition); % thanks Thomas Vanaret for http://www.mathworks.com/matlabcentral/fileexchange/32226-recursive-directory-listing-enhanced-rdir
 else
-    list = ls(pattern);
+  temp = rdir(searchstring);
 end
 
-[st, en] = regexp(list,'\S*');
+data = {temp.name}';
 
-files = {};
-for ii = 1:length(st)
-  files{ii} = list(st(ii):en(ii));
+if ispc
+  data = cellfun(@(x) strrep(x,'\\','/'), data, 'uni', false); % convert ugly "\\" back to much less troublesome "/" filesep
+  data = cellfun(@(x) strrep(x,'\','/'), data, 'uni', false); % convert ugly "\" back to much less troublesome "/" filesep
 end
-
-files = sort(files)';

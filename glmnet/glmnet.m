@@ -1,42 +1,61 @@
 function fit = glmnet(x, y, family, options)
 
 %--------------------------------------------------------------------------
-% glmnet.m: fit an elasticnet model path
+% glmnet.m: fit an GLM with lasso or elasticnet regularization
 %--------------------------------------------------------------------------
 %
 % DESCRIPTION:
-%    Fit a regularization path for the elasticnet at a grid of values for
-%    the regularization parameter lambda. Can deal with all shapes of data.
-%    Fits linear, logistic and multinomial regression models.
+%    Fit a generalized linear model via penalized maximum likelihood. The 
+%    regularization path is computed for the lasso or elasticnet penalty 
+%    at a grid of values for the regularization parameter lambda. Can deal 
+%    with all shapes of data, including very large sparse data matrices. 
+%    Fits linear, logistic and multinomial, Poisson, and Cox regression 
+%    models.
 %
-% USAGE: 
+% USAGE:
 %    fit = glmnet(x, y)
+%    fit = glmnet(x, y, family)
 %    fit = glmnet(x, y, family, options)
+%    (Use empty matrix [] to apply the default value, eg. fit = glmnet(x,
+%    y, [], options))
+%
 %
 % EXTERNAL FUNCTIONS:
 % options         = glmnetSet;                  provided with glmnet.m
 %
 % INPUT ARGUMENTS:
 % x           Input matrix, of dimension nobs x nvars; each row is an
-%             observation vector. Currently sparse format is NOT supported.
-% y           Response variable. Quantitative for family =
-%             'gaussian'. For family = 'binomial' should be either a vector
-%             of two levels, or a two-column matrix of counts or
-%             proportions. For family = 'multinomial', can be either a
-%             vector of nc>=2 levels, or a matrix with nc columns of counts
-%             or proportions.
-% family      Reponse type. (See above). Default is 'gaussian'. 
-% options     A structure that may be set and altered by glmnetSet (type 
-%             help glmnetSet).
-%
+%             observation vector. Can be in sparse matrix format.
+% y           Response variable. Quantitative (column vector) for family =
+%             'gaussian', or family = 'poisson'(non-negative counts). For
+%             family = 'binomial' should be either a column vector with two 
+%             levels, or a two-column matrix of counts or proportions. For
+%             family = 'multinomial', can be a column vector of nc>=2
+%             levels, or a matrix with nc columns of counts or proportions.
+%             For family = 'cox', y should be a two-column matrix with the
+%             first column for time and the second for status. The latter
+%             is a binary variable, with 1 indicating death, and 0
+%             indicating right censored. For family = 'mgaussian', y is a
+%             matrix of quantitative responses. 
+% family      Reponse type. (See above). Default is 'gaussian'.
+% options     A structure that may be set and altered by glmnetSet.
+%             Default values for some often used options:
+%                options.alpha = 1.0  (elastic-net mixing parameter)
+%                options.nlambda = 100  (number of lambda values)
+%                options.lambda depends on data, nlambda and
+%                lambda_min(user spplied lambda sequence) 
+%                options.standardize = true  (variable standardization)
+%                options.weights = all ones vector (observation weights)
+%             For more details, type help glmnetSet.
+%             
 % OUTPUT ARGUMENTS:
 % fit         A structure.
-% fit.a0      Intercept sequence of length length(fit.lambda). 
-% fit.beta    For "elnet" and "lognet" models, a nvars x length(lambda) 
+% fit.a0      Intercept sequence of length length(fit.lambda).
+% fit.beta    For "elnet" and "lognet" models, a nvars x length(lambda)
 %             matrix of coefficients. For "multnet", a list of nc such
 %             matrices, one for each class.
 % fit.lambda  The actual sequence of lambda values used.
-% fit.dev     The fraction of (null) deviance explained (for "elnet", this 
+% fit.dev     The fraction of (null) deviance explained (for "elnet", this
 %             is the R-square).
 % fit.nulldev Null deviance (per observation).
 % fit.df      The number of nonzero coefficients for each value of lambda.
@@ -46,68 +65,168 @@ function fit = glmnet(x, y, family, options)
 %             nonzero coefficients per class.
 % fit.dim     Dimension of coefficient matrix (ices).
 % fit.npasses Total passes over the data summed over all lambda values.
-% fit.jerr    Error flag, for warnings and errors (largely for internal 
+% fit.offset  a logical variable indicating whether an offset was included
+%             in the model.
+% fit.jerr    Error flag, for warnings and errors (largely for internal
 %             debugging).
 % fit.class   Type of regression - internal usage.
+% fit.call    a cell including the names of all the input variables in the
+%             parent environment.
 %
 % DETAILS:
 %    The sequence of models implied by lambda is fit by coordinate descent.
-%    For family = 'gaussian' this is the lasso sequence if alpha = 1, else
-%    it is the elasticnet sequence. For family = 'binomial' or family =
-%    "multinomial", this is a lasso or elasticnet regularization path for
-%    fitting the linear logistic or multinomial logistic regression paths.
-%    Sometimes the sequence is truncated before options.nlambda values of
-%    lambda have been used, because of instabilities in the logistic or
-%    multinomial models near a saturated fit. glmnet(..., family =
-%    'binomial') fits a traditional logistic regression model for the
-%    log-odds. glmnet(..., family = 'multinomial') fits a symmetric
-%    multinomial model, where each class is represented by a linear model
-%    (on the log-scale). The penalties take care of redundancies. A
-%    two-class "multinomial" model will produce the same fit as the
-%    corresponding "binomial" model, except the pair of coefficient
-%    matrices will be equal in magnitude and opposite in sign, and half the
-%    "binomial" values. Note that the objective function for
-%    "gaussian" is 
-%                1 / (2 * nobs) RSS + lambda * penalty
-%    , and for the logistic models it is 
-%                1 / nobs - loglik + lambda * penalty
+%    For family='gaussian' this is the lasso sequence if alpha=1, else it
+%    is the elasticnet sequence. For the other families, this is a lasso or
+%    elasticnet regularization path for fitting the generalized linear
+%    regression paths, by maximizing the appropriate penalized
+%    log-likelihood (partial likelihood for the 'cox' model). Sometimes the
+%    sequence is truncated before nlambda values of lambda have been used,
+%    because of instabilities in the inverse link functions near a
+%    saturated fit. glmnet(...,family='binomial') fits a traditional
+%    logistic regression model for the log-odds.
+%    glmnet(...,family='multinomial') fits a symmetric multinomial model,
+%    where each class is represented by a linear model (on the log-scale).
+%    The penalties take care of redundancies. A two-class 'multinomial'
+%    model will produce the same fit as the corresponding 'binomial' model,
+%    except the pair of coefficient matrices will be equal in magnitude and
+%    opposite in sign, and half the 'binomial' values. Note that the
+%    objective function for 'gaussian' is
+%
+%                    1/2 RSS / nobs + lambda * penalty,
+%
+%    and for the logistic models it is
+%
+%                    -loglik / nobs + lambda * penalty.
+%
+%    Note also that for 'gaussian', glmnet standardizes y to have unit
+%    variance before computing its lambda sequence (and then unstandardizes
+%    the resulting coefficients); if you wish to reproduce/compare results
+%    with other software, best to supply a standardized y. The latest two
+%    features in glmnet are the family='mgaussian' family and the
+%    mtype='grouped' in options for multinomial fitting. The former
+%    allows a multi-response gaussian model to be fit, using a "group
+%    -lasso" penalty on the coefficients for each variable. Tying the
+%    responses together like this is called "multi-task" learning in some
+%    domains. The grouped multinomial allows the same penalty for the
+%    family='multinomial' model, which is also multi-responsed. For both of
+%    these the penalty on the coefficient vector for variable j is
+%
+%            (1-alpha)/2 * ||beta_j||_2^2 + alpha * ||beta_j||_2
+%
+%    When alpha=1 this is a group-lasso penalty, and otherwise it mixes
+%    with quadratic just like elasticnet. 
 %
 % LICENSE: GPL-2
 %
-% DATE: 14 Jul 2009
+% DATE: 30 Aug 2013
 %
 % AUTHORS:
-%    Algorithm was designed by Jerome Friedman, Trevor Hastie and Rob Tibshirani 
-%    Fortran code was written by Jerome Friedman 
+%    Algorithm was designed by Jerome Friedman, Trevor Hastie and Rob Tibshirani
+%    Fortran code was written by Jerome Friedman
 %    R wrapper (from which the MATLAB wrapper was adapted) was written by Trevor Hasite
-%    MATLAB wrapper was written and maintained by Hui Jiang, jiangh@stanford.edu 
+%    The original MATLAB wrapper was written by Hui Jiang (14 Jul 2009),
+%    and was updated and is maintained by Junyang Qian (30 Aug 2013) junyangq@stanford.edu,
 %    Department of Statistics, Stanford University, Stanford, California, USA.
 %
 % REFERENCES:
-%    Friedman, J., Hastie, T. and Tibshirani, R. (2009)
-%    Regularization Paths for Generalized Linear Models via Coordinate Descent.
-%    Journal of Statistical Software, 33(1), 2010
+%    Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization Paths for Generalized Linear Models via Coordinate Descent, 
+%    http://www.jstatsoft.org/v33/i01/
+%    Journal of Statistical Software, Vol. 33(1), 1-22 Feb 2010
+%    
+%    Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2011) Regularization Paths for Cox's Proportional Hazards Model via Coordinate Descent,
+%    http://www.jstatsoft.org/v39/i05/
+%    Journal of Statistical Software, Vol. 39(5) 1-13
+%
+%    Tibshirani, Robert., Bien, J., Friedman, J.,Hastie, T.,Simon, N.,Taylor, J. and Tibshirani, Ryan. (2010) Strong Rules for Discarding Predictors in Lasso-type Problems,
+%    http://www-stat.stanford.edu/~tibs/ftp/strong.pdf
+%    Stanford Statistics Technical Report
 %
 % SEE ALSO:
-%    glmnetSet, glmnetPrint, glmnetPlot, glmnetPredict and glmnetCoef methods.
-% 
+%    glmnetPrint, glmnetPlot, glmnetCoef, glmnetPredict,
+%    glmnetSet, glmnetControl and cvglmnet.
+%
 % EXAMPLES:
+% % Gaussian
 %    x=randn(100,20);
 %    y=randn(100,1);
-%    g2=randsample(2,100,true);
-%    g4=randsample(4,100,true);
-%    fit1=glmnet(x,y);
+%    fit1 = glmnet(x,y);
 %    glmnetPrint(fit1);
-%    glmnetCoef(fit1,0.01) % extract coefficients at a single value of lambda
-%    glmnetPredict(fit1,'response',x(1:10,:),[0.01,0.005]') % make predictions
-%    fit2=glmnet(x,g2,'binomial');
-%    fit3=glmnet(x,g4,'multinomial');
+%    glmnetPredict(fit1,[],0.01,'coef')  %extract coefficients at a single value of lambda
+%    glmnetPredict(fit1,x(1:10,:),[0.01,0.005]')  %make predictions
 %
-% DEVELOPMENT: 
+% % Multivariate Gaussian:
+%    y=randn(100,3);
+%    fit1m=glmnet(x,y,'mgaussian');
+%    glmnetPlot(fit1m,[],[],'2norm');
+%
+% % Binomial:
+%    g2=randsample(2,100,true);
+%    fit2=glmnet(x,g2,'binomial');
+%
+% % Multinomial:
+%    g4=randsample(4,100,true);
+%    fit3=glmnet(x,g4,'multinomial');
+%    opts=struct('mtype','grouped');
+%    fit3a=glmnet(x,g4,'multinomial',opts);
+%
+% % Poisson:
+%    N=500; p=20;
+%    nzc=5;
+%    x=randn(N,p);
+%    beta=randn(nzc,1);
+%    f=x(:,1:nzc) * beta;
+%    mu=exp(f);
+%    y=poissrnd(mu,N,1);
+%    fit=glmnet(x,y,'poisson');
+%    glmnetPlot(fit);
+%    pfit=glmnetPredict(fit,x,0.001,'response');
+%    plot(pfit,y,'o');
+%
+% % Cox:
+%    N=1000; p=30;
+%    nzc=p/3;
+%    x=randn(N,p);
+%    beta=randn(nzc,1);
+%    fx=x(:,1:nzc)*beta/3;
+%    hx=exp(fx);
+%    ty=exprnd(1./hx,N,1);
+%    tcens=binornd(1,0.3,N,1);
+%    y=cat(2,ty,1-tcens);
+%    fit=glmnet(x,y,'cox');
+%    glmnetPlot(fit);
+%
+% % Sparse:
+%    n=10000;p=200;
+%    nzc=fix(p/10);
+%    x=randn(n,p);
+%    iz=randsample(n*p,n*p*0.85,false);
+%    x(iz)=0;
+%    sx=sparse(x);
+%    beta=randn(nzc,1);
+%    fx=x(:,1:nzc)*beta;
+%    eps=randn(n,1);
+%    y=fx+eps;
+%    px=exp(fx);
+%    px=px./(1+px);
+%    ly=binornd(1,px,length(px),1);
+%    tic;
+%    fit1=glmnet(sx,y);
+%    toc;
+%    tic;
+%    fit2n=glmnet(x,y);
+%    toc;
+%
+% DEVELOPMENT:
 %    14 Jul 2009: Original version of glmnet.m written.
+%    30 Aug 2013: Updated glmnet.m with more options and more models
+%                 (multi-response Gaussian, cox and Poisson models) supported.  
+%    29 Dec 2013: Fixed a bug in the return value of CVerr.fit_preval,
+%                 pointed out by Leon Peshkin from Harvard University.
+%
+% OLDER UPDATES:
 %    26 Jan 2010: Fixed a bug in the description of y, pointed out by
 %                 Peter Rijnbeek from Erasmus University.
-%    09 Mar 2010: Fixed a bug of printing "ka = 2", pointed out by 
+%    09 Mar 2010: Fixed a bug of printing "ka = 2", pointed out by
 %                 Ramon Casanova from Wake Forest University.
 %    25 Mar 2010: Fixed a bug when p > n in multinomial fitting, pointed
 %                 out by Gerald Quon from University of Toronto
@@ -115,101 +234,83 @@ function fit = glmnet(x, y, family, options)
 %    27 Sep 2010: Fixed a bug of undefined "df" in multinomial fitting,
 %                 pointed by Jeff Howbert from Insilicos.
 
-% Check input arguments
 if nargin < 2
     error('more input arguments needed.');
 end
 
-if nargin < 3
+if nargin < 3 || isempty(family)
     family = 'gaussian';
 end
 
-if nargin < 4
+if nargin < 4 || isempty(options)
     options = glmnetSet;
 end
 
+%Get the names of input variables
+out_x = inputname(1); out_y = inputname(2);
+out_family = mat2str([]); out_options = mat2str([]);
+if nargin > 2
+    if ~isempty(inputname(3))
+        out_family = inputname(3);
+    else
+        out_family = family;
+    end
+end
+if nargin > 3
+    if ~isempty(inputname(4))
+        out_options = inputname(4);
+    end
+end
+
+%match the family, abbreviation allowed
+fambase = {'gaussian','binomial','poisson','multinomial','cox','mgaussian'};
+famind = find(strncmp(family,fambase,length(family)),1);
+if isempty(famind)
+    error('family should be one of ''gaussian'', ''binomial'', ''poisson'', ''multinomial'', ''cox'', ''mgaussian''');
+else
+    family = fambase{famind};
+end
+
 % Prepare parameters
+options = glmnetSet(options);
+
+if (options.alpha > 1)
+    warning('alpha >1; set to 1');
+    options.alpha = 1;
+end
+if (options.alpha < 0)
+    warning('alpha <0; set to 0');
+    options.alpha = 0;
+end
+
+parm = options.alpha;
 nlam = options.nlambda;
-
-if (issparse(x) || issparse(y))
-    error('currently sparse matrix is NOT supported.');
-end
-
-if (~isa(x,'double') || ~isa(y,'double'))
-    error('only DOUBLE precision matrix is supported.');
-end
-
 [nobs,nvars] = size(x);
-
-if (nobs <= 1)
-    error('at least two observations should be provided.');
-end
 
 weights = options.weights;
 if isempty(weights)
     weights = ones(nobs,1);
+else
+    if (length(weights) ~= nobs)
+        error('number of elements in weights (%d) not equal to the number of rows of x (%d)',length(weights),nobs);
+    end
 end
 
-maxit = options.maxit;
-
-if strcmp(family, 'binomial') || strcmp(family, 'multinomial')
-    [noo,nc] = size(y);
-    kopt = double(options.HessianExact);
-    if noo ~= nobs
-        error('x and y have different number of rows');
-    end
-    if nc == 1
-        classes = unique(y);
-        nc = length(classes);
-        indexes = eye(nc);
-        y = indexes(y,:);
-    end
-    if strcmp(family, 'binomial')
-        if nc > 2
-            error ('More than two classes; use multinomial family instead');
-        end
-        nc = 1; % for calling multinet
-    end
-    if ~isempty(weights)
-        % check if any are zero
-        o = weights > 0;
-        if ~all(o) %subset the data
-            y = y(o,:);
-            x = x(o,:);
-            weights = weights(o);
-            nobs = sum(o);
-        end
-        [my,ny] = size(y);
-        y = y .* repmat(weights,1,ny);
-    end
-    % Compute the null deviance
-    prior = sum(y,1);
-    sumw = sum(sum(y));
-    prior = prior / sumw;
-    nulldev = -2 * sum(sum(y .* (ones(nobs, 1) * log(prior)))) / sumw;
-elseif strcmp(family, 'gaussian')
-    % Compute the null deviance
-    ybar = y' * weights/ sum(weights);
-    nulldev = (y' - ybar).^2 * weights / sum(weights);
-    if strcmp(options.type, 'covariance')
-        ka = 1;
-    elseif strcmp(options.type, 'naive')
-        ka = 2;
-    else
-        error('unrecognized type');
-    end
-else
-    error('unrecognized family');
+nrowy = size(y, 1);
+if (nrowy ~= nobs)
+    error('number of observations in y (%d) not equal to the number of rows of x (%d)',nrowy,nobs);
 end
 
 ne = options.dfmax;
-if ne == 0
+if isempty(ne)
     ne = nvars + 1;
 end
+
 nx = options.pmax;
-if nx == 0
-    nx = min(ne * 1.2, nvars);
+if isempty(nx)
+    nx = min(ne * 2 + 20, nvars);
 end
+
 exclude = options.exclude;
 if ~isempty(exclude)
     exclude = unique(exclude);
@@ -222,178 +323,146 @@ else
 end
 vp = options.penalty_factor;
 if isempty(vp)
-    vp = ones(nvars,1);
+    vp = ones(1,nvars);
 end
+
+inparms = glmnetControl();
+
+cl = options.cl;
+if any(cl(1,:) > 0)
+    error ('The lower bound should be non-positive');
+end
+if any(cl(2,:) < 0)
+    error ('The lower bound should be non-negative');
+end
+cl(1,cl(1,:)==-Inf) = -inparms.big;
+cl(2,cl(2,:)==Inf) = inparms.big;
+if (size(cl,2) < nvars)
+    if (size(cl,2) == 1)
+        cl = cl * ones(1,nvars);
+    else
+        error('Require length 1 or nvars lower and upper limits');
+    end
+else
+    cl = cl(:,1:nvars);
+end
+
+exit_rec = 0;
+if (any(cl(:)==0))
+    fdev = inparms.fdev;
+    if (fdev ~= 0)
+        optset.fdev = 0;
+        glmnetControl(optset);
+        exit_rec = 1;
+    end
+end
+
 isd = double(options.standardize);
+intr = double(options.intr);
+if (intr == true) && (strcmp(family, 'cox'))
+    warning('Cox model has no intercept');
+end
+jsd = options.standardize_resp;
 thresh = options.thresh;
 lambda = options.lambda;
 lambda_min = options.lambda_min;
-if lambda_min == 0
+
+if isempty(lambda_min)
     if nobs < nvars
-        lambda_min = 5e-2;
+        lambda_min = 0.01;   
     else
         lambda_min = 1e-4;
     end
 end
-if isempty(lambda)
+
+lempty = isempty(lambda);
+if lempty
     if (lambda_min >= 1)
         error('lambda_min should be less than 1');
     end
     flmin = lambda_min;
-    ulam = 0;
+    ulam = 0.0;
 else
     flmin = 1.0;
     if any(lambda < 0)
         error ('lambdas should be non-negative');
     end
-    ulam = -sort(-lambda);
+    ulam = sort(lambda,'descend');
     nlam = length(lambda);
 end
 
-parm = options.alpha;
+maxit = options.maxit;
 
-if strcmp(family, 'gaussian')
-    [a0,ca,ia,nin,rsq,alm,nlp,jerr] = glmnetMex(parm,x,y,jd,vp,ne,nx,nlam,flmin,ulam,thresh,isd,weights,ka);
+gtype = options.gtype; 
+if isempty(gtype)
+    if (nvars < 500)
+        gtype = 'covariance';
+    else
+        gtype = 'naive';
+    end
+end
+ltype = options.ltype;
+
+indl = find(strncmp(ltype,{'Newton','modified.Newton'},length(ltype)),1);
+if (isempty(indl))
+    error('ltype should be one of ''Newton'', ''modified.Newton''');
 else
-    [a0,ca,ia,nin,dev,alm,nlp,jerr] = glmnetMex(parm,x,y,jd,vp,ne,nx,nlam,flmin,ulam,thresh,isd,nc,maxit,kopt);
+    kopt = indl - 1;
 end
 
-% Prepare output
-lmu = length(alm);
-ninmax = max(nin);
-lam = alm;
-if isempty(options.lambda)
-    lam = fix_lam(lam); % first lambda is infinity; changed to entry point
-end
-errmsg = err(jerr, maxit, nx);
-if errmsg.n == 1
-    error(errmsg.msg);
-elseif errmsg.n == -1
-    warning(errmsg.msg);
-end
-
-if strcmp(family, 'multinomial')
-    beta_list = {};
-    a0 = a0 - repmat(mean(a0), nc, 1);
-    dfmat=a0;
-    dd=[nvars, lmu];
-    if ninmax > 0
-        ca = reshape(ca, nx, nc, lmu);
-        ca = ca(1:ninmax,:,:);
-        ja = ia(1:ninmax);
-        [ja1,oja] = sort(ja);
-        df = any(abs(ca) > 0, 2);
-        df = sum(df, 1);
-        df = df(:);
-        for k=1:nc
-            ca1 = reshape(ca(:,k,:), ninmax, lmu);
-            cak = ca1(oja,:);
-            dfmat(k,:) = sum(sum(abs(cak) > 0));
-            beta = zeros(nvars, lmu);
-            beta(ja1,:) = cak;
-            beta_list{k} = beta;
-        end
+if strcmp(family,'multinomial')
+    mtype = options.mtype;
+    indm = find(strncmp(mtype,{'ungrouped','grouped'},length(mtype)),1);
+    if (isempty(indm))
+        error('mtype should be one of ''ungrouped'', ''grouped''');
     else
-        for k = 1:nc
-            dfmat(k,:) = zeros(1,lmu);
-            beta_list{k} = zeros(nvars, lmu);
+        if (indm == 2)
+            kopt = 2;
         end
-        df = zeros(1,lmu);
     end
-    fit.a0 = a0;
-    fit.beta = beta_list;
-    fit.dev = dev;
-    fit.nulldev = nulldev;
-    fit.dfmat = dfmat;
-    fit.df = df';
-    fit.lambda = lam;
-    fit.npasses = nlp;
-    fit.jerr = jerr;
-    fit.dim = dd;
-    fit.class = 'multnet';
+end
+
+offset = options.offset;
+
+is_sparse = false;
+if issparse(x)
+    is_sparse = true;
+    [irs, jcs, x] = find(x);
+    pcs = [0;cumsum(histc(jcs, 1:nvars))] + 1;
 else
-    dd=[nvars, lmu];
-    if ninmax > 0
-        ca = ca(1:ninmax,:);
-        df = sum(abs(ca) > 0, 1);
-        ja = ia(1:ninmax);
-        [ja1,oja] = sort(ja);
-        beta = zeros(nvars, lmu);
-        beta (ja1, :) = ca(oja,:);
-    else
-        beta = zeros(nvars,lmu);
-        df = zeros(1,lmu);
-    end
-    
-    if strcmp(family, 'binomial')
-        a0 = -a0;
-        fit.a0 = a0;
-        fit.beta = -beta; %sign flips make 2 arget class
-        fit.dev = dev;
-        fit.nulldev = nulldev;
-        fit.df = df';
-        fit.lambda = lam;
-        fit.npasses = nlp;
-        fit.jerr = jerr;
-        fit.dim = dd;
-        fit.class = 'lognet';
-    else
-        fit.a0 = a0;
-        fit.beta = beta;
-        fit.dev = rsq;
-        fit.nulldev = nulldev;
-        fit.df = df';
-        fit.lambda = lam;
-        fit.npasses = nlp;
-        fit.jerr = jerr;
-        fit.dim = dd;
-        fit.class = 'elnet';
-    end
+    irs = []; pcs = [];
+end
+
+if issparse(y)
+    y = full(y);
+end
+  
+switch family
+
+    case 'gaussian'
+        fit = elnet(x,is_sparse,irs,pcs,y,weights,offset,gtype,parm,lempty,...
+            nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,maxit,family);
+    case {'binomial', 'multinomial'}
+        fit = lognet(x,is_sparse,irs,pcs,y,weights,offset,parm,nobs,nvars,...
+            jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,maxit,kopt,family);
+    case 'cox'
+        fit = coxnet(x,is_sparse,irs,pcs,y,weights,offset,parm,nobs,nvars,...
+            jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,maxit,family);
+    case 'mgaussian'
+        fit = mrelnet(x,is_sparse,irs,pcs,y,weights,offset,parm,nobs,nvars,...
+            jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,family);
+    case 'poisson'
+        fit = fishnet(x,is_sparse,irs,pcs,y,weights,offset,parm,nobs,nvars,...
+            jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,maxit,family);     
+end
+
+fit.call = {out_x, out_y, out_family, out_options};
+
+if (exit_rec == 1)
+    optset.fdev = fdev;
+    glmnetControl(optset);
 end
 
 %------------------------------------------------------------------
 % End function glmnet
-%------------------------------------------------------------------
-
-function new_lam = fix_lam(lam)
-
-new_lam = lam;
-llam=log(lam);
-new_lam(1)=exp(2*llam(2)-llam(3));
-
-%------------------------------------------------------------------
-% End private function fix_lam
-%------------------------------------------------------------------
-
-function output = err(n,maxit,pmax)
-
-if n==0
-    output.n=0;
-    output.msg='';
-elseif n>0 %fatal error
-    if n<7777
-        msg='Memory allocation error; contact package maintainer';
-    elseif n==7777 
-        msg='All used predictors have zero variance';
-    elseif (8000<n) && (n<9000)
-        msg=sprintf('Null probability for class %d < 1.0e-5', n-8000);
-    elseif (9000<n) && (n<10000)
-        msg=sprintf('Null probability for class %d > 1.0 - 1.0e-5', n-9000);
-    elseif n==10000
-        msg='All penalty factors are <= 0';
-    end
-    output.n=1
-    output.msg=['in glmnet fortran code - %s',msg];
-elseif n<0 %non fatal error
-    if n > -10000 
-        msg=sprintf('Convergence for %dth lambda value not reached after maxit=%d iterations; solutions for larger lambdas returned', -n, maxit);
-    elseif n < -10000 
-        msg=sprintf('Number of nonzero coefficients along the path exceeds pmax=%d at %dth lambda value; solutions for larger lambdas returned', pmax, -n-10000);
-    end
-    output.n=-1;
-    output.msg=['from glmnet fortran code - ',msg];
-end
-
-%------------------------------------------------------------------
-% End private function err
 %------------------------------------------------------------------

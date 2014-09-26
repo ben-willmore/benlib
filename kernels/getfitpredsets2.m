@@ -12,7 +12,7 @@ function subsets = getfitpredsets2(idx, n_subsets, seed)
 % Inputs:
 %  idx -- indices to divide up (or a scalar n for 1:n)
 %  n_subsets -- number of non-overlapping prediction sets to use
-%  seed -- random number generator seed
+%  seed -- random number generator seed or nan for contiguous chunks
 
 % randomly permute data
 if exist('seed', 'var') && isfinite(seed)
