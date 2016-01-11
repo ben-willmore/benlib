@@ -18,7 +18,7 @@ for ii = 1:fitparams.restarts % n restarts with different initial conditions
     res(ii).x0(jj) = fitparams.x0fun{jj}();
   end
   res(ii).x0 = res(ii).x0(:);
-  
+
   %   options = [];
   options.display = 'none';
   options.maxFunEvals = 25;

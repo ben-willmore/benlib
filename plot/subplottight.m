@@ -16,4 +16,9 @@ ywid = prop/m*(1-margin);
 
 xmin = margin/2 + (xnum-(1-margin))/n*(1-margin) + ((1-margin)/n-xwid)/2;
 ymin = margin/2 + (1-margin)-(ynum)/m*(1-margin) + ((1-margin)/m-ywid)/2;
-h = subplot('position',[xmin ymin xwid ywid]);
+
+if nargout==1
+	h = subplot('position',[xmin ymin xwid ywid]);
+else
+	subplot('position',[xmin ymin xwid ywid]);
+end

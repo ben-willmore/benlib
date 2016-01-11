@@ -63,7 +63,14 @@ t_overlap_bins = t_window_bins - dt_bins;
     melbankbw(params.n_f, t_window_bins*params.nfft_mult, params.fs,...
         params.f_min/params.fs, params.f_max/params.fs, params.meltype);        
 if any(sum(melbank.x')==0)
-	error('some melbank filters have no coefficients; increase nfft_mult');
+	fprintf('some melbank filters have no coefficients; increasing nfft_mult\n');
+  params.nfft_mult = 8;
+  [melbank.x, melbank.mc, melbank.na, melbank.nb] = ...
+    melbankbw(params.n_f, t_window_bins*params.nfft_mult, params.fs,...
+        params.f_min/params.fs, params.f_max/params.fs, params.meltype); 
+  if any(sum(melbank.x')==0) 
+    error('some melbank filters still have no coefficients; giving up\n');       
+  end
 end
 
 params.melbank = melbank;

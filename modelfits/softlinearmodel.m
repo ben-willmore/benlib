@@ -19,4 +19,17 @@ else
 end
 
 %yhat_t = a + b.*log(1+exp(z_t-c));
-yhat_t = a + b./d.*log(1+exp(d*(z_t-c)));
+%yhat_t = a + b./d.*log(1+exp(d*(z_t-c)));
+
+w = d*(z_t-c);
+exp_tmp = exp(w);
+log_tmp = log(1+exp_tmp);
+
+% Replace log_tmp with numerically stable version if w>700
+% (because exp(710) is Inf.
+% log_tmp = log(1+exp_tmp) = log(1+exp(w))
+% For large values, we are in the linear regime, so
+% our numerically stable approximation is just w itself:
+log_tmp(w>700) = w(w>700);
+
+yhat_t = a + b./d.*log_tmp;

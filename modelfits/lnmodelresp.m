@@ -1,5 +1,5 @@
 function yhat_t = lnmodel(x, z_t)
-% function yhat_t = lnmodel(x, data)
+% function yhat_t = lnmodel(x, z_t)
 % 
 % Calculate sigmoid LN model
 % 

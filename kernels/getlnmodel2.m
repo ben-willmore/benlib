@@ -6,7 +6,7 @@ fitdata.y_t = y_fit;
 fitdata.z_t = z_fit;
 
 % initialise fit params
-fitparams.restarts = 10;
+fitparams.restarts = 100;
 fitparams.options = optimset('Algorithm', 'sqp', 'Display', 'off');
 fitparams.model = @lnmodel;
 
@@ -17,7 +17,7 @@ if zrange==0
 end
 zmean = mean(z_fit);
 yrange = iqr(y_fit);
-ymin = prctile(y_fit, 25);
+ymin = prctile(y_fit, 5);
 
 %a ~ Exp(ymin + 0.05) 
 %b ~ Exp(yrange * 2) % not using *2

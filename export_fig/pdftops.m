@@ -27,17 +27,18 @@ function varargout = pdftops(cmd)
 % Mac OS.
 % Thanks to Christoph Hertel for pointing out a bug in check_xpdf_path
 % under linux.
+% 23/01/2014 - Add full path to pdftops.txt in warning.
 
 % Call pdftops
 [varargout{1:nargout}] = system(sprintf('"%s" %s', xpdf_path, cmd));
-return
+end
 
-function path = xpdf_path
+function path_ = xpdf_path
 % Return a valid path
 % Start with the currently set path
-path = user_string('pdftops');
+path_ = user_string('pdftops');
 % Check the path works
-if check_xpdf_path(path)
+if check_xpdf_path(path_)
     return
 end
 % Check whether the binary is on the path
@@ -47,16 +48,16 @@ else
     bin = 'pdftops';
 end
 if check_store_xpdf_path(bin)
-    path = bin;
+    path_ = bin;
     return
 end
 % Search the obvious places
 if ispc
-    path = 'C:\Program Files\xpdf\pdftops.exe';
+    path_ = 'C:\Program Files\xpdf\pdftops.exe';
 else
-    path = '/usr/local/bin/pdftops';
+    path_ = '/usr/local/bin/pdftops';
 end
-if check_store_xpdf_path(path)
+if check_store_xpdf_path(path_)
     return
 end
 % Ask the user to enter the path
@@ -74,34 +75,35 @@ while 1
     base = [base filesep];
     bin_dir = {'', ['bin' filesep], ['lib' filesep]};
     for a = 1:numel(bin_dir)
-        path = [base bin_dir{a} bin];
-        if exist(path, 'file') == 2
+        path_ = [base bin_dir{a} bin];
+        if exist(path_, 'file') == 2
             break;
         end
     end
-    if check_store_xpdf_path(path)
+    if check_store_xpdf_path(path_)
         return
     end
 end
 error('pdftops executable not found.');
+end
 
-function good = check_store_xpdf_path(path)
+function good = check_store_xpdf_path(path_)
 % Check the path is valid
-good = check_xpdf_path(path);
+good = check_xpdf_path(path_);
 if ~good
     return
 end
 % Update the current default path to the path found
-if ~user_string('pdftops', path)
-    warning('Path to pdftops executable could not be saved. Enter it manually in pdftops.txt.');
+if ~user_string('pdftops', path_)
+    warning('Path to pdftops executable could not be saved. Enter it manually in %s.', fullfile(fileparts(which('user_string.m')), '.ignore', 'pdftops.txt'));
     return
 end
-return
+end
 
-function good = check_xpdf_path(path)
+function good = check_xpdf_path(path_)
 % Check the path is valid
-[good message] = system(sprintf('"%s" -h', path));
+[good, message] = system(sprintf('"%s" -h', path_));
 % system returns good = 1 even when the command runs
 % Look for something distinct in the help text
 good = ~isempty(strfind(message, 'PostScript'));
-return
+end

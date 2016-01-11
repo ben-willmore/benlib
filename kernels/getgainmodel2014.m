@@ -44,7 +44,7 @@ lb = [y_min-3*y_range 0 z_min-3*z_range -1000]; % lower bounds
 ub = [y_max+3*y_range 10*y_range z_max+3*z_range 1000]; % upper bounds
 
 fitparams.params = {[], [], [], [], [], [], []};
-fprintf('Ignoring bounds\n')
+fprintf('Ignoring bounds\n');
 model = fitmodel5_minFunc(fitparams, fitdata);
 
 % if any(abs(model.params-lb)<eps)
