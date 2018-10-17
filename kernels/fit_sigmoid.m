@@ -7,9 +7,10 @@ fitdata.y = y;
 fitdata.x = x;
 
 % initialise fit params
-fitparams.restarts = 100;
+fitparams.restarts = 10;
 fitparams.options = optimset('Algorithm', 'sqp', 'Display', 'off');
 fitparams.model = @sigmoidresp;
+fitparams.errorfunc = @sigmoidSSE_partials2;
 
 % data driven starting values (could also be used as priors)
 xrange = iqr(x);
@@ -49,7 +50,7 @@ x_range = range(x);
 
 fitparams.params = {[], [], [], [], [], [], []};
 
-model = fitmodel4_minFunc(fitparams, fitdata);
+model = fitmodel5_minFunc(fitparams, fitdata);
 
 % if any(abs(model.params-lb)<eps)
 % 	fprintf('getlnmodel: hit lower bounds:\n');

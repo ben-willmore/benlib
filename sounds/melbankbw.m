@@ -128,14 +128,14 @@ else
 end
 if ~any(w=='H')
     switch wr
-                    case 'f'       % no transformation
+        case 'f'       % no transformation
         case 'l'
             if fl<=0
                 error('Low frequency limit must be >0 for l option');
             end
             mflh=log10(mflh);       % convert frequency limits into log10 Hz
         case 'e'
-            mflh=frq2erb(mflh);       % convert frequency limits into erb-rate            
+            mflh=frq2erb(mflh);       % convert frequency limits into erb-rate
         case 'k'
             mflh=frq2erbcat(mflh);       % convert frequency limits into erb-rate for cat
         case 'b'
@@ -150,30 +150,30 @@ if isempty(p)
     p=ceil(4.6*log10(fs));         % default number of filters
 end
 if any(w=='c')              % c option: specify fiter centres not edges
-if p<1
-    p=round(melrng/(p*1000))+1;
-end
-melinc=melrng/(p-1);
-mflh=mflh+(-1:2:1)*melinc;
+    if p<1
+        p=round(melrng/(p*1000))+1;
+    end
+    melinc=melrng/(p-1);
+    mflh=mflh+(-1:2:1)*melinc;
 else
     if p<1
-    p=round(melrng/(p*1000))-1;
-end
-melinc=melrng/(p+1);
+        p=round(melrng/(p*1000))-1;
+    end
+    melinc=melrng/(p+1);
 end
 
 %
 % Calculate the FFT bins corresponding to [filter#1-low filter#1-mid filter#p-mid filter#p-high]
 %
 switch wr
-        case 'f'
+    case 'f'
         blim=(mflh(1)+[0 1 p p+1]*melinc)*n/fs;
     case 'l'
         blim=10.^(mflh(1)+[0 1 p p+1]*melinc)*n/fs;
     case 'e'
         blim=erb2frq(mflh(1)+[0 1 p p+1]*melinc)*n/fs;
     case 'k'
-        blim=erb2frqcat(mflh(1)+[0 1 p p+1]*melinc)*n/fs;        
+        blim=erb2frqcat(mflh(1)+[0 1 p p+1]*melinc)*n/fs;
     case 'b'
         blim=bark2frq(mflh(1)+[0 1 p p+1]*melinc)*n/fs;
     otherwise

@@ -26,11 +26,13 @@ for ii = 1:fitparams.restarts % n restarts with different initial conditions
   options.Method = 'lbfgs'; %'cg'
   
   % do fitting
-  [res(ii).params, res(ii).sqerr] = minFunc(@fitparams.errorfunc,...
-    res(ii).x0, options,fitdata);
+  [res(ii).params, res(ii).sqerr] = minFunc(@fitparams.errorfunc, res(ii).x0, options,fitdata);
+  %res(ii).params = fmincon(@(x) ...
+  %         sum((fitparams.model(x,fitdata)-fitdata.y_t).^2), ...
+  %         res(ii).x0, fitparams.params{:}, fitparams.options);
   res(ii).params = res(ii).params(:)'; % minFunc takes columns, bens code takes rows
   res(ii).yhat = fitparams.model(res(ii).params, fitdata);
-  %   res(ii).sqerr = sum((res(ii).yhat-fitdata.y_t).^2);
+  %res(ii).sqerr = sum((res(ii).yhat-fitdata.y_t).^2);
   
   % progress bar
   if mod(ii,ceil(fitparams.restarts/10))==0

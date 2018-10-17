@@ -24,21 +24,21 @@ function c = multiprod(a, b, idA, idB)
 %         the ID of B.
 %
 %   3) 1-D by 2-D BLOCK(S) (*)
-%         C = MULTIPROD(A, B, DA1, [DB1 DB2]) contains the products of the 
+%         C = MULTIPROD(A, B, DA1, [DB1 DB2]) contains the products of the
 %         Q-element vectors in A by the R×S matrices in B. The vectors in A
 %         are considered to be 1×Q matrices. DA1 is the ID of A; [DB1 DB2]
 %         are the IDs of B.
 %
 %   4) 1-D BY 1-D BLOCK(S) (*)
 %      (a) If either SIZE(A, DA1) == 1 or SIZE(B, DB1) == 1, or both,
-%             C = MULTIPROD(A, B, DA1, DB1) returns products of scalars by 
+%             C = MULTIPROD(A, B, DA1, DB1) returns products of scalars by
 %             vectors, or vectors by scalars or scalars by scalars.
-%      (b) If SIZE(A, DA1) == SIZE(B, DB1), 
-%             C = MULTIPROD(A, B, [0 DA1], [DB1 0]) or 
+%      (b) If SIZE(A, DA1) == SIZE(B, DB1),
+%             C = MULTIPROD(A, B, [0 DA1], [DB1 0]) or
 %             C = MULTIPROD(A, B, DA1, DB1) virtually turns the vectors
 %             contained in A and B into 1×P and P×1 matrices, respectively,
 %             then returns their products, similar to scalar products.
-%             Namely, C = DOT2(A, B, DA1, DB1) is equivalent to 
+%             Namely, C = DOT2(A, B, DA1, DB1) is equivalent to
 %             C = MULTIPROD(CONJ(A), B, [0 DA1], [DB1 0]).
 %      (c) Without limitations on the length of the vectors in A and B,
 %             C = MULTIPROD(A, B, [DA1 0], [0 DB1]) turns the vectors
@@ -48,12 +48,12 @@ function c = multiprod(a, b, idA, idB)
 %             C = MULTIPROD(CONJ(A), B, [DA1 0], [0 DB1]).
 %
 %   Common constraints for all syntaxes:
-%      The external dimensions of A and B must either be identical or 
+%      The external dimensions of A and B must either be identical or
 %      compatible with AX rules. The internal dimensions of each block
 %      array must be adjacent (DA2 == DA1 + 1 and DB2 == DB1 + 1 are
 %      required). DA1 and DB1 are allowed to be larger than NDIMS(A) and
 %      NDIMS(B). In syntaxes 1, 2, and 3, Q == R is required, unless the
-%      blocks in A or B are scalars. 
+%      blocks in A or B are scalars.
 %
 %   Array expansion (AX):
 %      AX is a powerful generalization to N-D of the concept of scalar
@@ -75,7 +75,7 @@ function c = multiprod(a, b, idA, idB)
 %            corresponding ED of the other array is not, the mismatch is
 %            fixed by virtually replicating the array (or diminishing it to
 %            length 0) along that dimension.
-% 
+%
 %   MULTIPROD is a generalization for N-D arrays of the matrix
 %   multiplication function MTIMES, with AX enabled. Vector inner, outer,
 %   and cross products generalized for N-D arrays and with AX enabled are
@@ -122,7 +122,7 @@ function c = multiprod(a, b, idA, idB)
 %         --------------------------------------------------------------
 %
 %   Terminological notes:
-%   (*) 1-D and 2-D blocks are generically referred to as "vectors" and 
+%   (*) 1-D and 2-D blocks are generically referred to as "vectors" and
 %       "matrices", respectively. However, both may be also called
 %       “scalars” if they have a single element. Moreover, matrices with a
 %       single row or column (e.g. 1×3 or 3×1) may be also called “row
@@ -170,7 +170,7 @@ function c = multiprod(a, b, idA, idB)
 % OUTPUT    tested by:     Paolo de Leva                        2009 Feb 24
 % -------------------------------------------------------------------------
 
-error( nargchk(2, 4, nargin) ); % Allow 2 to 4 input arguments
+narginchk(2, 4); % Allow 2 to 4 input arguments
 switch nargin % Setting IDA and/or IDB
     case 2, idA = [1 2]; idB = [1 2];
     case 3, idB = idA;
@@ -191,16 +191,16 @@ end
      squashOK, sxtimesOK, timesOK, mtimesOK, sumOK] = ...
                                            sizeval(idA,idB, sizeA0,sizeB0);
 
-% MAIN 1 - Applying dimension shift (first step of AX) and 
+% MAIN 1 - Applying dimension shift (first step of AX) and
 %          turning both A and B into arrays of either 1-D or 2-D blocks
 
-     if sizeisnew(1), a = reshape(a, sizeA); end    
+     if sizeisnew(1), a = reshape(a, sizeA); end
      if sizeisnew(2), b = reshape(b, sizeB); end
 
 % MAIN 2 - Performing products with or without SX (second step of AX)
 
      if squashOK % SQUASH + MTIMES (fastest engine)
-         c = squash2D_mtimes(a,b, idA,idB, sizeA,sizeB, squashOK); 
+         c = squash2D_mtimes(a,b, idA,idB, sizeA,sizeB, squashOK);
      elseif timesOK % TIMES (preferred w.r. to SX + TIMES)
          if sumOK, c = sum(a .* b, sumOK);
          else      c =     a .* b; end
@@ -230,32 +230,32 @@ function c = squash2D_mtimes(a, b, idA, idB, sizeA, sizeB, squashOK)
 
         % STEP 1 - Moving IDA(2) to last dimension
         nd = length(sizeA);
-        d2 = idA(2);    
+        d2 = idA(2);
         order = [1:(d2-1) (d2+1):nd d2]; % Partial shifting
         a = permute(a, order); % ...×Q
 
-        % STEP 2 - Squashing A from N-D to 2-D  
+        % STEP 2 - Squashing A from N-D to 2-D
         q = sizeB(1);
         s = sizeB(2);
         lengthorder = length(order);
-        collapsedsize = sizeA(order(1:lengthorder-1)); 
+        collapsedsize = sizeA(order(1:lengthorder-1));
         n = prod(collapsedsize);
-        a = reshape(a, [n, q]); % N×Q    
+        a = reshape(a, [n, q]); % N×Q
         fullsize = [collapsedsize s]; % Size to reshape C back to N-D
 
     else % B is multi-block, A is single-block (squashing B)
 
         % STEP 1 - Moving IDB(1) to first dimension
         nd = length(sizeB);
-        d1 = idB(1);    
+        d1 = idB(1);
         order = [d1 1:(d1-1) (d1+1):nd]; % Partial shifting
         b = permute(b, order); % Q×...
 
-        % STEP 2 - Squashing B from N-D to 2-D  
+        % STEP 2 - Squashing B from N-D to 2-D
         p = sizeA(1);
         q = sizeA(2);
         lengthorder = length(order);
-        collapsedsize = sizeB(order(2:lengthorder)); 
+        collapsedsize = sizeB(order(2:lengthorder));
         n = prod(collapsedsize);
         b = reshape(b, [q, n]); % Q×N
         fullsize = [p collapsedsize]; % Size to reshape C back to N-D
@@ -312,9 +312,9 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
     if  NidA>2 || NidB>2 || NidA==0 || NidB==0 || ...
            ~isreal(idA1) ||    ~isreal(idB1)   || ...
         ~isnumeric(idA1) || ~isnumeric(idB1)   || ...
-                 0>idA1  ||          0>idB1    || ... % negative 
+                 0>idA1  ||          0>idB1    || ... % negative
          idA1~=fix(idA1) ||  idB1~=fix(idB1)   || ... % non-integer
-         ~isfinite(idA1) ||  ~isfinite(idB1) % Inf or NaN               
+         ~isfinite(idA1) ||  ~isfinite(idB1) % Inf or NaN
         error('MULTIPROD:InvalidDimensionArgument', ...
         ['Internal-dimension arguments (e.g., [IDA1 IDA2]) must\n', ...
          'contain only one or two non-negative finite integers']);
@@ -327,12 +327,12 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
     idB2 = idB(NidB);
 
     if any(idA==0) || any(idB==0)
-        
+
         % "Inner products": C = MULTIPROD(A, B, [0 DA1], [DB1 0])
         if idA1==0 && idA2>0 && idB1>0 && idB2==0
             idA1 = idA2;
             idB2 = idB1;
-        % "Outer products": C = MULTIPROD(A, B, [DA1 0], [0 DB1]) 
+        % "Outer products": C = MULTIPROD(A, B, [DA1 0], [0 DB1])
         elseif idA1>0 && idA2==0 && idB1==0 && idB2>0
             declared_outer = true;
             idA2 = idA1;
@@ -342,7 +342,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
             ['Misused zeros in the internal-dimension arguments\n', ...
             '(see help heads 4b and 4c)']);
         end
-        NidA = 1; 
+        NidA = 1;
         NidB = 1;
         idA = idA1;
         idB = idB1;
@@ -350,7 +350,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
     elseif (NidA==2 && idA2~=idA1+1) || ...  % Non-adjacent IDs
            (NidB==2 && idB2~=idB1+1)
         error('MULTIPROD:InvalidDimensionArgument', ...
-        ['If an array contains 2-D blocks, its two internal dimensions', ... 
+        ['If an array contains 2-D blocks, its two internal dimensions', ...
         'must be adjacent (e.g. IDA2 == IDA1+1)']);
     end
 
@@ -377,7 +377,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
     p = adjsizeA(idA1);
     q = adjsizeA(idA2);
     r = adjsizeB(idB1);
-    s = adjsizeB(idB2);    
+    s = adjsizeB(idB2);
     scalarsinA = (p==1 && q==1);
     scalarsinB = (r==1 && s==1);
     singleA = all(extsizeA==1);
@@ -393,11 +393,11 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
 
     shiftA = 0;
     shiftB = 0;
-    diffBA = idB1 - idA1;    
+    diffBA = idB1 - idA1;
     if scalarA % Do nothing
     elseif singleA && ~scalarsinB, shiftA = -idA1 + 1; %  Left shifting A
-    elseif idB1 > idA1,            shiftA = diffBA;    % Right shifting A        
-    end    
+    elseif idB1 > idA1,            shiftA = diffBA;    % Right shifting A
+    end
     if scalarB % Do nothing
     elseif singleB && ~scalarsinA, shiftB = -idB1 + 1; %  Left shifting B
     elseif idA1 > idB1,            shiftB = -diffBA;   % Right shifting B
@@ -414,7 +414,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
 
     if (singleA||singleB) &&~scalarsinA &&~scalarsinB % Engine using MTIMES
 
-        if singleA && singleB 
+        if singleA && singleB
             mtimesOK = true;
             shiftC=idC1-1; % Right shifting C
             idC1=1; idC2=2;
@@ -427,7 +427,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
         end
 
         if NidA==2 && NidB==2 % 1) 2-D BLOCKS BY 2-D BLOCKS
-            % OK 
+            % OK
         elseif NidA==2        % 2) 2-D BLOCKS BY 1-D BLOCKS
             addB=idB1+1; delC=idC2;
         elseif NidB==2        % 3) 1-D BLOCKS BY 2-D BLOCKS
@@ -438,16 +438,16 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
             else
                 addA=idA1; addB=idB1+1; delC=idC2;
             end
-        end    
+        end
 
     else % Engine using TIMES (also used if SCALARA || SCALARB)
-        
+
         sxtimesOK = true;
 
         if NidA==2 && NidB==2 % 1) 2-D BLOCKS BY 2-D BLOCKS
 
             if scalarA || scalarB
-                timesOK=true;                
+                timesOK=true;
             elseif scalarsinA && scalarsinB % scal-by-scal
                 checktimes=true;
             elseif scalarsinA || scalarsinB || ... % scal-by-mat
@@ -465,7 +465,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
         elseif NidA==2 % 2) 2-D BLOCKS BY 1-D BLOCKS
 
             if scalarA || scalarB
-                timesOK=true;                
+                timesOK=true;
             elseif scalarsinA && scalarsinB % scal-by-scal
                 addB=idB1; checktimes=true;
             elseif scalarsinA % scal-by-vec
@@ -481,7 +481,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
         elseif NidB==2 % 3) 1-D BLOCKS BY 2-D BLOCKS
 
             if scalarA || scalarB
-                timesOK=true;                
+                timesOK=true;
             elseif scalarsinA && scalarsinB % scal-by-scal
                 addA=idA1+1; checktimes=true;
             elseif scalarsinB % vec-by-scal
@@ -497,7 +497,7 @@ function [sizeA, sizeB, shiftC, delC, sizeisnew, idA, idB, ...
         else % 4) 1-D BLOCKS BY 1-D BLOCKS
 
             if scalarA || scalarB
-                timesOK=true;                
+                timesOK=true;
             elseif declared_outer % vec-by-vec ("outer")
                 addA=idA1+1; addB=idB1;
             elseif scalarsinA && scalarsinB % scal-by-scal
@@ -528,11 +528,11 @@ function [sizeA, sizeisnew] = adjustsize(sizeA0, shiftA, addA, delA, swapA)
 
     % Dimension shifting (by adding or deleting trailing singleton dim.)
     if     shiftA>0, [sizeA,newA1] = addsing(sizeA0, 1, shiftA);
-    elseif shiftA<0, [sizeA,newA1] = delsing(sizeA0, 1,-shiftA); 
+    elseif shiftA<0, [sizeA,newA1] = delsing(sizeA0, 1,-shiftA);
     else   sizeA = sizeA0;  newA1  = false;
     end
     % Modifying block size (by adding, deleting, or moving singleton dim.)
-    if      addA, [sizeA,newA2] = addsing(sizeA, addA+shiftA, 1); % 1D-->2D 
+    if      addA, [sizeA,newA2] = addsing(sizeA, addA+shiftA, 1); % 1D-->2D
     elseif  delA, [sizeA,newA2] = delsing(sizeA, delA+shiftA, 1); % 2D-->1D
     elseif swapA, [sizeA,newA2] = swapdim(sizeA,swapA+shiftA); % ID Swapping
     else                 newA2  = false;
@@ -549,7 +549,7 @@ function [newsize, flag] = addsing(size0, dim, ns)
     if dim > length(size0)
         newsize = size0;
         flag = false;
-    else 
+    else
         newsize = [size0(1:dim-1), ones(1,ns), size0(dim:end)];
         flag = true;
     end

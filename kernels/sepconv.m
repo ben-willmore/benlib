@@ -1,13 +1,13 @@
 function y_t = sepconv(X_fht, kernel)
 % function y_t = sepconv(X_fht, kernel)
-% 
+%
 % Calculate output of separable kernel to stimulus X_fht
 %
 % Inputs:
 %  X_fht -- tensorized stimulus
 %  kernel -- separable kernel containing k_f, k_h and c, or
 %            for backward compatibility, k_f, k_h, c_f, c_h
-% 
+%
 % Output:
 %  y_t -- response vector
 

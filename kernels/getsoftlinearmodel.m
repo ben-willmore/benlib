@@ -34,8 +34,20 @@ zmax = prctile(z_fit, 95);
 %b ~ Exp(yrange * 2) % not using *2
 %c ~ N(zmean, zrange ^ 2)
 %d ~ Exp(0.1 * zrange) (minimum at 0.1)
+%fitparams.x0fun = {@() exprnd(ymin) @() exprnd(yrange/zrange) ...
+%       			     @() rand*(zmax-zmin)+zmin @() exprnd(100/(zmax-zmin))};
+
+% a = x(1); % y-offset
+% b = x(2); % slope
+% c = x(3); % x-offset
+% d = x(4); % sharpness of transition
+ymin = prctile(y_fit, 2);
+zmin = prctile(z_fit, 2);
+zmax = prctile(z_fit, 98);
+
 fitparams.x0fun = {@() exprnd(ymin) @() exprnd(yrange/zrange) ...
        			     @() rand*(zmax-zmin)+zmin @() exprnd(100/(zmax-zmin))};
+
 %[ymin+0.05 3*yrange/zrange zmax yrange]
 % constraints
 % y_min = min(y_fit);

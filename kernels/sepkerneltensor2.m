@@ -1,6 +1,6 @@
 function kernel = sepkerneltensor(X_fht, y_t, niter)
 % function kernel = sepkerneltensor(X_fht, y_t)
-% 
+%
 % Compute separable kernel from tensorized stimulus
 % Now returns a single constant, c, rather than
 % c_f and c_h
@@ -8,7 +8,7 @@ function kernel = sepkerneltensor(X_fht, y_t, niter)
 % Inputs:
 %  X_fht -- stimulus, freq x history x time
 %  y_t -- response, 1-D time series
-% 
+%
 % Output:
 %  kernel.k_f -- frequency kernel
 %  kernel.k_h -- history kernel
@@ -33,7 +33,6 @@ end
 y_mn = mean(y_t);
 y_t = y_t - y_mn;
 
-
 % estimate k_f and k_h
 k_f = ones(n_f, 1);
 k_h = ones(n_h, 1);
@@ -43,14 +42,14 @@ for ii = 1:niter
  yh = squeeze(sum(yh, 1));
  % the following is OK but seems to be slower
  % yh = squeeze(multiprod(X_fht, k_f, 1));
- 
+
  k_h = lsqlin(yh', y_t);
 
  yh = X_fht.*repmat(k_h', [n_f 1 n_t]);
  yh = squeeze(sum(yh, 2));
  % the following is OK and same speed
  % yh = multiprod(X_fht, k_h', 2);
- 
+
  k_f = lsqlin(yh', y_t);
 end
 

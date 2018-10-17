@@ -33,7 +33,7 @@ snd = drc.snd;
 
 figure(2);
 t = 1:length(snd);
-neil = readf32('test/gain_time_course.chord_fs.40.token.1.raw.f32')';
+neil = f32read('test/gain_time_course.chord_fs.40.token.1.raw.f32')';
 
 n = min(length(snd), length(neil))-500;
 m = 1;
