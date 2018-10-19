@@ -25,8 +25,9 @@ yl = ylim;
 
 l = [min(xl(1), yl(1)) max(xl(2), yl(2))];
 
-plot([l(1) l(2)], [l(1) l(2)], 'k-', 'linewidth', 2);
-
+plot([l(1)-1000 l(2)+1000], [l(1)-1000 l(2)+1000], 'k-', 'linewidth', 2);
+xlim(xl);
+ylim(yl);
 hold off;
 
 xlim(l);

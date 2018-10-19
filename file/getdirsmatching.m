@@ -2,11 +2,9 @@ function files = getdirsmatching(pattern)
 % get files matching a unix pattern
 
 list = ls('-d', pattern);
-[st, en] = regexp(list,'\S*');
+files = strsplit(list,'\n');
 
-files = {};
-for ii = 1:length(st)
-  files{ii} = list(st(ii):en(ii));
-end
+notempty = cellfun(@(x) length(x)>0, files);
+files = files(notempty);
 
 files = sort(files)';

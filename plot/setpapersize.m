@@ -8,6 +8,10 @@ if isstr(width)
 		width = 27;
 		height = 18;
 	end
+    if strcmp(lower(width), 'a4portrait')
+        width = 18;
+        height = 27;
+    end
 end
 
 % if width>height

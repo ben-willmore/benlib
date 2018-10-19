@@ -48,9 +48,9 @@ r = rmfield(restarts, 'y_hat');
 nrf_model.restarts = r;
 
 % evaluate it on fit data
-[model.cc_norm_fit, model.cc_abs_fit, model.cc_max_fit] = ...
-    calc_CCnorm(y_dt(:,fit_idx), model.y_hat(fit_idx));
+[nrf_model.cc_norm_fit, nrf_model.cc_abs_fit, nrf_model.cc_max_fit] = ...
+    calc_CCnorm(y_dt(:,fit_idx), nrf_model.y_hat(fit_idx));
 
 % evaluate it on prediction data
-[model.cc_norm_pred, model.cc_abs_pred, model.cc_max_pred] = ...
-    calc_CCnorm(y_dt(:,pred_idx), model.y_hat(pred_idx));
+[nrf_model.cc_norm_pred, nrf_model.cc_abs_pred, nrf_model.cc_max_pred] = ...
+    calc_CCnorm(y_dt(:,pred_idx), nrf_model.y_hat(pred_idx));

@@ -1,9 +1,9 @@
 function yhat_t = gainmodel2014(x, data)
 % function yhat_t = gainmodel2014(x, data)
-% 
+%
 % Calculate gain model -- sigmoid where a, b are fixed, but c, d can vary
 % with contrast
-% 
+%
 % Inputs:
 %  x -- parameters
 %  data.z_t -- output of separable kernel
