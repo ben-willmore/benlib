@@ -29,7 +29,7 @@ for count = 1:n_squares
   B(yo:yo+side_y-1,xo:xo+side_x-1) = data;
 end
 B = B / max(abs(B(:)));
-show(B);
+imagesc0(B);
 colormap(redbluemap);
 
 hold on;
