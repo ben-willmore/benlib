@@ -7,6 +7,7 @@ fitdata.dt = dt;
 fitdata.y_t = y_fit;
 fitdata.z_t = z_fit;
 fitdata.C_ht = C_ht_fit;
+% fitdata.pause = true;
 
 % initialise fit params
 fitparams.restarts = 4;
@@ -32,5 +33,4 @@ lb = [p(1) p(2) p(3) p(4) p(5) p(6) 0 0];
 ub = [p(1) p(2) p(3) p(4) p(5) p(6) h_max/2 0];
 
 fitparams.params = {[], [], [], [], lb, ub, []};
-
 model = fitmodel3(fitparams, fitdata);

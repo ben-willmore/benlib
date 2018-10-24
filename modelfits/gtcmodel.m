@@ -7,7 +7,7 @@ c_L = x(3);
 c_H = x(4);
 d_L = x(5);
 d_H = x(6);
-tau = x(7); % time constant
+tau = 1000; %x(7); % time constant
 h_0 = x(8); % lag of exponential
 
 z_t = data.z_t;

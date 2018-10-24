@@ -1,7 +1,7 @@
 function model = gtc_model(dt, z_t, C_ht, y_dt, gain_model, fit_idx, pred_idx)
 
 y_t = mean(y_dt, 1);
-model = getgtcmodel2(dt, z_t(fit_idx), C_ht(:, fit_idx), y_t(fit_idx), gain_model);
+model = getgtcmodel(dt, z_t(fit_idx), C_ht(:, fit_idx), y_t(fit_idx), gain_model);
 
 model = rmfield(model, 'fit');
 model = rmfield(model, 'restarts');
