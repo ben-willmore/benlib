@@ -8,7 +8,8 @@ fitdata.z_t = z_fit;
 % initialise fit params
 fitparams.restarts = 100;
 fitparams.options = optimset('Algorithm', 'sqp', 'Display', 'off');
-fitparams.model = @lnmodel;
+fitparams.modelfunc = @lnmodel;
+fitparams.errorfunc = @sigmoidSSE_partials2;
 
 % data driven starting values (could also be used as priors)
 zrange = iqr(z_fit);
@@ -19,7 +20,7 @@ zmean = mean(z_fit);
 yrange = iqr(y_fit);
 ymin = prctile(y_fit, 5);
 
-%a ~ Exp(ymin + 0.05) 
+%a ~ Exp(ymin + 0.05)
 %b ~ Exp(yrange * 2) % not using *2
 %c ~ N(zmean, zrange ^ 2)
 %d ~ Exp(0.1 * zrange) (minimum at 0.1)
@@ -40,16 +41,25 @@ ub = [y_max+3*y_range 10*y_range z_max+3*z_range 1000]; % upper bounds
 
 fitparams.params = {[], [], [], [], lb, ub, []};
 
-model = fitmodel4_minFunc(fitparams, fitdata);
+model = fitmodel6_minFunc(fitparams, fitdata);
 
-% if any(abs(model.params-lb)<eps)
-% 	fprintf('getlnmodel: hit lower bounds:\n');
-% 	model.params
-% 	lb
-% end
-% 
-% if any(abs(model.params-ub)<eps)
-% 	fprintf('getlnmodel: hit upper bounds\n');
-% 	model.params
-% 	ub
-% end
+% The sigmoid is:
+% y = a + b/(1+exp(-(x-c)/d))
+%
+% The derivative is:
+% y' = b.exp(-(x-c)/d)/(d(exp(-(x-c))+1)^2)
+%
+% At x=c, y' = b/(4.d)
+model.slope_at_midpoint = model.params(2)/(4*model.params(4));
+
+if any(abs(model.params-lb)<eps)
+	fprintf('getlnmodel: hit lower bounds:\n');
+	model.params
+	lb
+end
+
+if any(abs(model.params-ub)<eps)
+	fprintf('getlnmodel: hit upper bounds\n');
+	model.params
+	ub
+end

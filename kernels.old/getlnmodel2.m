@@ -1,12 +1,13 @@
-function model = getlnmodel(z_fit, y_fit)
+function model = getlnmodel_testing(z_fit, y_fit)
 % function model = getlnmodel(z_fit, y_fit)
-fprintf('*** WARNING *** getlnmodel is obsolete! Use getlnmodel2 instead\n');
+% Modified by Joe to use fitmodel4_minFunc
+fprintf('*** WARNING *** getlnmodel2 is obsolete! Use getlnmodel3 instead\n');
 
 fitdata.y_t = y_fit;
 fitdata.z_t = z_fit;
 
 % initialise fit params
-fitparams.restarts = 6;
+fitparams.restarts = 100;
 fitparams.options = optimset('Algorithm', 'sqp', 'Display', 'off');
 fitparams.model = @lnmodel;
 
@@ -17,14 +18,14 @@ if zrange==0
 end
 zmean = mean(z_fit);
 yrange = iqr(y_fit);
-ymin = prctile(y_fit, 25);
+ymin = prctile(y_fit, 5);
 
-%a ~ Exp(ymin + 0.05) 
+%a ~ Exp(ymin + 0.05)
 %b ~ Exp(yrange * 2) % not using *2
 %c ~ N(zmean, zrange ^ 2)
-%d ~ Exp(0.1 * zrange)
+%d ~ Exp(0.1 * zrange) (minimum at 0.1)
 fitparams.x0fun = {@() exprnd(ymin+0.05) @() exprnd(yrange) ...
-       			     @() (randn*zrange)+zmean @() exprnd(0.1*zrange)};
+       			     @() (randn*zrange)+zmean @() max(exprnd(0.1*zrange),0.1)};
 
 % constraints
 y_min = min(y_fit);
@@ -40,16 +41,16 @@ ub = [y_max+3*y_range 10*y_range z_max+3*z_range 1000]; % upper bounds
 
 fitparams.params = {[], [], [], [], lb, ub, []};
 
-model = fitmodel3(fitparams, fitdata);
+model = fitmodel4_minFunc(fitparams, fitdata);
 
-if any(abs(model.params-lb)<eps)
-	fprintf('getlnmodel: hit lower bounds:\n');
-	model.params
-	lb
-end
-
-if any(abs(model.params-ub)<eps)
-	fprintf('getlnmodel: hit upper bounds\n');
-	model.params
-	ub
-end
+% if any(abs(model.params-lb)<eps)
+% 	fprintf('getlnmodel: hit lower bounds:\n');
+% 	model.params
+% 	lb
+% end
+%
+% if any(abs(model.params-ub)<eps)
+% 	fprintf('getlnmodel: hit upper bounds\n');
+% 	model.params
+% 	ub
+% end

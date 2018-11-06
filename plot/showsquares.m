@@ -41,4 +41,3 @@ for count = 1:n_squares
   set(h2,'Color',[0 0 0]);
 end
 hold off;
-

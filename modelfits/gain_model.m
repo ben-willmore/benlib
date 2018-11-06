@@ -1,12 +1,17 @@
 function model = gain_model(z_t, C_t, y_dt, ln_model, fit_idx, pred_idx)
+% Fit a "gain model" which is an LN sigmoid model where the parameters
+% c and d have different values for high and low contrast data.
 
 y_t = mean(y_dt, 1);
-model = getgainmodel(z_t(fit_idx), C_t(fit_idx), y_t(fit_idx), ln_model);
+model = getgainmodel2(z_t(fit_idx), C_t(fit_idx), y_t(fit_idx), ln_model);
 
 model = rmfield(model, 'fit');
 model = rmfield(model, 'restarts');
 
-model.y_hat = gainmodelresp(model.params, C_t, z_t);
+tmpdata.C_t = C_t;
+tmpdata.z_t = z_t;
+
+model.y_hat = gainmodel(model.params, tmpdata);
 
 
 % evaluate it on fit data

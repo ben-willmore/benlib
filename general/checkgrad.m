@@ -9,7 +9,7 @@ function d = check(f, X, e, P1, P2, P3, P4, P5);
 %
 % where X is the argument and e is the small perturbation used for the finite
 % differences. and the P1, P2, ... are optional additional parameters which
-% get passed to f. The function f should be of the type 
+% get passed to f. The function f should be of the type
 %
 % [fX, dfX] = f(X, P1, P2, ...)
 %
