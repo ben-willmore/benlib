@@ -169,6 +169,9 @@ function CVerr = cvglmnet(x,y,family,options,type,nfolds,foldid,parallel,keep,gr
 %    cvglmnetPlot(cvfit);
 %    
 % % Cox
+%    n=1000;p=30;
+%    nzc=p/3;
+%    x=randn(n,p);
 %    beta=randn(nzc,1);
 %    fx=x(:,1:nzc)*beta/3;
 %    hx=exp(fx);
@@ -260,7 +263,7 @@ is_offset = glmfit.offset;
 options.lambda = glmfit.lambda;
 
 nz = glmnetPredict(glmfit,[],[],'nonzero');
-if strcmp(glmfit.class,'multnet')
+if (strcmp(glmfit.class,'multnet'))
     nnz = zeros(length(options.lambda),length(nz));
     for i = 1:length(nz)
         nnz(:,i) = transpose(sum(nz{i},1));
@@ -273,7 +276,8 @@ else
 end
 
 if isempty(foldid)
-    foldid = randsample(cat(2,repmat(1:nfolds,1,floor(N/nfolds)), 1:mod(N,nfolds)),N);
+    population = cat(2, repmat(1:nfolds, 1, floor(N/nfolds)), 1:mod(N,nfolds));
+    foldid = population(randperm(length(population), N));
 else
     nfolds = max(foldid);
 end
@@ -318,7 +322,7 @@ else
         end
         xr = x(~which,:); yr = y(~which,:);
         cpredmat{i} = glmnet(xr, yr, family, opts);
-    end    
+    end
 end
 
 switch cpredmat{1}.class
@@ -350,10 +354,10 @@ end
 if strcmp(type, 'auc')
     cvm = -cvm;
 end
-CVerr.lambda_min = nanmax(options.lambda(cvm<=nanmin(cvm)));
+CVerr.lambda_min = max(options.lambda(cvm<=min(cvm)));
 idmin = options.lambda==CVerr.lambda_min;
 semin = cvm(idmin)+cvsd(idmin);
-CVerr.lambda_1se = nanmax(options.lambda(cvm<=semin));
+CVerr.lambda_1se = max(options.lambda(cvm<=semin));
 CVerr.class = 'cv.glmnet';
 end
 
