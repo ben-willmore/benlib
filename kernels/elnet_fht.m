@@ -1,11 +1,11 @@
 function [kernel, allKernels, res] = elnet_fht(X_fht, y_t, varargin)
 % function [kernel, res] = elnet_fht(X_fht, y_t, params)
-% 
+%
 % Elastic net kernel estimation using glmnet
 % X_fht -- fxhxt "tensorised" stimulus
 % y_t   -- 1xt response vector
 % varargin -- 'lasso' or 'ridge'
-%             an options structure as produced by glmnetSet except 
+%             an options structure as produced by glmnetSet except
 % 					alpha may be a vector, o
 % 			  a list of indices to use for cross-validation
 
@@ -68,7 +68,7 @@ n_alphas = length(alphas);
 fprintf('Getting kernels for %d alpha%s', n_alphas, repmat('s',(n_alphas>1)));
 for alphaIdx = 1:n_alphas
   fprintf('.');
-	options.alpha = alphas(alphaIdx);
+  options.alpha = alphas(alphaIdx);
   result{alphaIdx} = glmnet(X_fit, y_fit, 'gaussian', options);
   result{alphaIdx}.alpha = ones(size(result{alphaIdx}.lambda)) * options.alpha;
 end
