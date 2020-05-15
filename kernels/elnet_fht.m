@@ -48,6 +48,8 @@ y_t = y_t(:);
 
 % get 10% of data for choosing hyperparameters (lambda, alpha)
 if ~exist('val_idx', 'var')
+    fprintf('Choosing a random subset for cross-validation.\n');
+    fprintf('If this is not what you want, provide an array of validation indices.\n');
 	val_prop = 0.1;
 	n_val = ceil(val_prop*n_t);
 	r = randperm(n_t);
