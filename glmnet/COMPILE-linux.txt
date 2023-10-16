@@ -1,10 +1,22 @@
+# 2023
+
+I found that the version of glmnet I had previously compiled on linux has subtle
+differences in results from the versions that I had running on Mac. I addressed
+this by checking results against R and glmnet downloaded from CRAN, on a linux
+machine (and on ARM Mac). I found that the matlab/linux results only match
+CRAN if I include '-fdefault-integer-8 -fdefault-real-8' in the .xml file, i.e.
+
+mex ./compile/gfortran-linux-intel-2023.xml glmnetMex.F GLMnet.f
+
+(not all tests are the same, see glmnet_test repo) to check)
+
 # To recompile on linux:
 
 mex glmnetMex.F GLMnet.f
 
 # Re 64-bit linux: We (Alex Ivanov, Ben Willmore) found that the Stanford-
 # compiled glmnetMex.mexa64 failed on some big datasets (with a segmentation
-# fault). We found that we could fix this on Ubuntu 18.04 by recompiling. 
+# fault). We found that we could fix this on Ubuntu 18.04 by recompiling.
 # The current version of glmnetMex.mexa64 is the result of that compilation
 # but does not work at all on older versions of Ubuntu. Recompiling on older
 # Ubuntu (14.04 / 16.04) didn't fix the crash on those platforms.

@@ -58,6 +58,9 @@ end
 
 fit_idx = setdiff(1:n_t, val_idx);
 
+% fprintf('len(fit_idx): %d\n', length(fit_idx));
+% fprintf('len(val_idx): %d\n', length(val_idx));
+
 X_fit = X_t_fh(fit_idx, :);
 y_fit = y_t(fit_idx);
 

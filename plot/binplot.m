@@ -2,7 +2,7 @@ function [x, y] = binplot(x, y, n_bins, varargin)
 % function binplot(x, y, n_bins, varargin)
 %
 % plot binned scatterplot of y against x
-% 
+%
 % Inputs:
 %  x, y -- vectors containing data
 %  n_bins -- number of bins to plot
@@ -20,7 +20,7 @@ binned_data = zeros(n_bins, 2);
 startidxs = 1:binsize:size(data, 1);
 for bin = 1:length(startidxs)
   ii = startidxs(bin);
-  binned_data(bin, :) = mean(data(ii:min(ii+binsize-1, size(data, 1)), :));
+  binned_data(bin, :) = mean(data(ii:min(ii+binsize-1, size(data, 1)), :), axis=0);
 end
 
 if nargout==0

@@ -1,0 +1,78 @@
+# october 2023, apple silicon build of Matlab
+
+# I copied the gfortran6.xml from linux installation of matlab, and made a hybrid of this
+# with nagfor.xml
+# Saved as gfortran-apple-silicon-2023.xml
+# To compile using this file:
+
+/Applications/MATLAB_R2023b.app/bin/mex -f ./gfortran-apple-silicon-2023.xml glmnetMex.f GLMnet.f
+
+
+# To debug, run from **bash** using the above xml file in verbose mode:
+
+/Applications/MATLAB_R2023b.app/bin/mex -v -f ./gfortran-apple-silicon-2023.xml glmnetMex.f GLMnet.f
+
+# may get errors about gfortran not being found, edit relevant parts of xml file to match gfortran installation
+
+# I also got errors about -i8 flag not being recognised. I added -fdefault-integer-8 -fdefault-real-8 to FFLAGS, but also
+# had to rename FFLAGS to FFLAGS_MOD to prevent mex from appending '-i8' to the flags
+
+
+# to make this portable, need to copy homebrew libraries and edit glmnetMex.mexmaca64 file
+# to refer to the new locations:
+
+otool -L glmnetMex.mexmaca64
+cp /opt/homebrew/opt/gcc/lib/gcc/current/libgfortran.5.dylib ./lib/maca64
+install_name_tool -change /opt/homebrew/opt/gcc/lib/gcc/current/libgfortran.5.dylib @loader_path/lib/maca64/libgfortran.5.dylib glmnetMex.mexmaca64
+cp /opt/homebrew/opt/gcc/lib/gcc/current/libquadmath.0.dylib ./lib/maca64/
+install_name_tool -change /opt/homebrew/opt/gcc/lib/gcc/current/libquadmath.0.dylib @loader_path/lib/maca64/libquadmath.0.dylib glmnetMex.mexmaca64
+
+# october 2023, intel build of Matlab
+
+# I created an arm64 MacOS virtual machine in UTM, installed rosetta from command line, opened x86 zsh
+# using arch -x86_64 zsh
+# install homebrew using the standard install command (results in x86 because you are in an x86 shell)
+# brew install gfortran
+# installed intel matlab
+
+/Applications/MATLAB_R2023b.app/bin/mex -v -f ./gfortran-apple-x86-2023.xml glmnetMex.f GLMnet.f
+
+
+
+
+## previously for apple silicon, I generated a script using the above method. not needed now that the xml file works
+
+#!/bin/bash
+
+/opt/homebrew/bin/gfortran -c -DMATLAB_DEFAULT_RELEASE=R2017b  -DUSE_MEX_CMD \
+ -I"/Applications/MATLAB_R2023b.app/extern/include" -I"/Applications/MATLAB_R2023b.app/simulink/include" \
+ -fdefault-integer-8 -fdefault-real-8 \
+ -fexceptions -fbackslash -fPIC -fno-omit-frame-pointer -fallow-argument-mismatch \
+ -D__LP64__ -DMATLAB_MEX_FILE -O2 -w -O2 "/Users/ben/matlab/benlib/glmnet/glmnetMex.F" -o glmnetMex.o
+
+/opt/homebrew/bin/gfortran -c -DMATLAB_DEFAULT_RELEASE=R2017b  -DUSE_MEX_CMD \
+ -I"/Applications/MATLAB_R2023b.app/extern/include" -I"/Applications/MATLAB_R2023b.app/simulink/include" \
+ -fdefault-integer-8 -fdefault-real-8 \
+ -fexceptions -fbackslash -fPIC -fno-omit-frame-pointer -fallow-argument-mismatch \
+ -D__LP64__ -DMATLAB_MEX_FILE -O2 -w -O2 "/Users/ben/matlab/benlib/glmnet/GLMnet.f" -o GLMnet.o
+
+# now, link using the compiled .o files
+/Applications/MATLAB_R2023b.app/bin/mex -v -f ./gfortran-apple-silicon-2023.xml glmnetMex.o GLMnet.o
+rm glmnetMex.o GLMnet.o
+
+
+# Nov 22, Mac OS Ventura 13.0
+
+# installed Intel Fortran Compiler Classic for macOS*	2022.2.1
+source /opt/intel/oneapi/setvars.sh
+mex glmnetMex.F GLMnet.f
+
+# in matlab, to test:
+X = rand(100, 256);
+y = rand(1, 256);
+r = elnet_fht(tensorize(X, 2), y);
+r.k_fh
+
+# or
+tic;m=1000;n=2560;X=reshape(1:m*n,m,n);y=1:n;r = elnet_fht(tensorize(X, 2), y);toc
+

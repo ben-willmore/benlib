@@ -1,5 +1,5 @@
-function  [E, dE] = sigmoidSSE_partials2(X, fitdata)
-% [E, dE] = sigmoidSSE_partials2(X, fitdata)
+function  [E, dE] = sigmoidSSE_partials(X, fitdata)
+% [E, dE] = sigmoidSSE_partials(X, fitdata)
 % X is a vector of arguments:
 %   a = X(1); % minimum
 %   b = X(2); % range
@@ -20,9 +20,9 @@ function  [E, dE] = sigmoidSSE_partials2(X, fitdata)
 
 % This has been checked with checkgrad.m:
 % fitdata.y_t = rand(200,1); fitdata.z_t = rand(200,1);
-% d = checkgrad('sigmoidSSE_partials2', rand(4,1), 1e-5, fitdata)
+% d = checkgrad('sigmoidSSE_partials', rand(4,1), 1e-5, fitdata)
 %
-% d = checkgrad('sigmoidSSE_partials2', X, 1e-5, fitdata)
+% d = checkgrad('sigmoidSSE_partials', X, 1e-5, fitdata)
 %
 % This function does not like small values for d - it gives inf values
 % which in turn give NaN values for dE/dc and dE/dd
@@ -51,7 +51,7 @@ exp_x = exp(x);
 % mm = -max(x);
 % exp_mm = exp(mm);
 % exp_xmm = exp(x+mm);
-
+%
 % etrat = exp_xmm./(exp_mm+exp_xmm);
 % % above line is a numerically stable equivalent of etrat = exp(x)./(1+exp(x));
 % % http://neuro.imm.dtu.dk/software/lyngby/doc/lyngby.latex2html/node106.html
@@ -64,11 +64,8 @@ xnegi = (x<=0);
 xposi = (x>0);
 etrat(xnegi) = exp_x(xnegi)./(1+exp_x(xnegi));
 etrat(xposi) = 1./(1+exp(-x(xposi)));
-% etrat_sq = etrat.^2;
 
-% etrat_sq is a stable approximation to exp(x)/(1+exp(x)^2
-% etrat_sq = exp(-abs(x))./((1+exp(-abs(x))).^2);
-% etrat_sq = exp(x)./((1+exp(x))).^2
+
 
 % PARTIALS
 % dE/dP = sum(2*residuals * dfX/dP)
@@ -82,8 +79,8 @@ dE(2) = sum(2*residuals ./ (1+exp_x));
 
 % dfX/dc = -b*exp_x /[d*(1+exp_x)^2]
 %        = -b /[d*(1+exp_x)] * etrat
-dE(3) = sum(2*residuals * -b ./ (d .* (1+exp_x)) .* etrat);
+dE(3) = sum(2*residuals * -b ./ (d*(1+exp_x)) .* etrat);
 
 % dfX/dd = b(-z_t+c)*exp_x / [d*(1+exp_x)]^2
 %        = b(-z_t+c)/[d^2*(1+exp_x)] * etrat
-dE(4) = sum(2*residuals * b .* (-z_t+c) ./ (d^2 .* (1+exp_x)) .* etrat );
+dE(4) = sum(2*residuals *b.*(-z_t+c)./(d^2*(1+exp_x)) .* etrat);

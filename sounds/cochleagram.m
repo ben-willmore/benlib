@@ -61,21 +61,22 @@ t_overlap_bins = t_window_bins - dt_bins;
 
 [melbank.x, melbank.mc, melbank.na, melbank.nb] = ...
     melbankbw(params.n_f, t_window_bins*params.nfft_mult, params.fs,...
-        params.f_min/params.fs, params.f_max/params.fs, params.meltype);        
+        params.f_min/params.fs, params.f_max/params.fs, params.meltype);
 if any(sum(melbank.x')==0)
 	fprintf('some melbank filters have no coefficients; increasing nfft_mult\n');
   params.nfft_mult = 8;
   [melbank.x, melbank.mc, melbank.na, melbank.nb] = ...
     melbankbw(params.n_f, t_window_bins*params.nfft_mult, params.fs,...
-        params.f_min/params.fs, params.f_max/params.fs, params.meltype); 
-  if any(sum(melbank.x')==0) 
-    error('some melbank filters still have no coefficients; giving up\n');       
+        params.f_min/params.fs, params.f_max/params.fs, params.meltype);
+  if any(sum(melbank.x')==0)
+    error('some melbank filters still have no coefficients; giving up\n');
   end
 end
 
 params.melbank = melbank;
 
 params.f = 10.^params.melbank.mc;
+
 
 [spec, freqs, t] = spectrogram(x, t_window_bins, t_overlap_bins, ...
 				t_window_bins*params.nfft_mult, params.fs);
@@ -85,3 +86,9 @@ for tt = 1:size(spec,2)
     X_ft(:,tt)=max(10.*log10(params.melbank.x*abs(spec(params.melbank.na:params.melbank.nb,tt))), ...
     	params.threshold);
 end
+
+spect = struct;
+spect.spec = spec;
+spect.freqs = freqs;
+spect.t = t;
+params.spec = spect;

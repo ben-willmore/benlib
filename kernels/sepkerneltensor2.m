@@ -40,6 +40,7 @@ k_h = ones(n_h, 1);
 for ii = 1:niter
  yh = X_fht.*repmat(k_f, [1 n_h n_t]);
  yh = squeeze(sum(yh, 1));
+ 
  % the following is OK but seems to be slower
  % yh = squeeze(multiprod(X_fht, k_f, 1));
 

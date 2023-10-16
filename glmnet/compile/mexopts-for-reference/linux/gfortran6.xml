@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config
+    Name="gfortran"
+    ShortName="gfortran"
+    Manufacturer="GNU"
+    Version="$GFORTRAN_VERSION"
+    Language="FORTRAN"
+    Priority="A"
+    Location="$GFORTRAN_INSTALLDIR" >
+    <Details
+        CompilerExecutable="$FC"
+        CompilerDefines="$DEFINES"
+        CompilerFlags="$FFLAGS"
+        OptimizationFlags="$FOPTIMFLAGS"
+        DebugFlags="$FDEBUGFLAGS"
+        IncludeFlags="$INCLUDE"
+        LinkerLibraries="$LINKLIBS"
+        LinkerOptimizationFlags="$LDOPTIMFLAGS"
+        LinkerDebugFlags="$LDDEBUGFLAGS"
+
+        CompilerDefineFormatter="-D%s"
+        LinkerLibrarySwitchFormatter="-l%s"
+        LinkerPathFormatter="-L%s"
+    />
+    <vars
+        CMDLINE1="$FC -c $DEFINES $INCLUDE $FFLAGS $OPTIM $SRC -o $OBJ"
+        CMDLINE2="$LDF $LDFLAGS $LDTYPE $LINKOPTIM $LINKEXPORTVER $OBJS $FLIBS $LINKLIBS -o $EXE"
+
+        FC="$GFORTRAN_EXECUTABLE"
+        DEFINES=""
+        FFLAGS="-fexceptions -fbackslash -fPIC -fno-omit-frame-pointer -fallow-argument-mismatch"
+        INCLUDE="-I&quot;$MATLABROOT/extern/include&quot; -I&quot;$MATLABROOT/simulink/include&quot;"
+        FOPTIMFLAGS="-O2"
+        FDEBUGFLAGS="-g"
+
+        LDF="$FC"
+        LDFLAGS="-pthread"
+        LDTYPE="-shared"
+        LINKEXPORT="-Wl,--version-script,$MATLABROOT/extern/lib/$ARCH/fexport.map"
+        LINKEXPORTVER="-Wl,--version-script,$MATLABROOT/extern/lib/$ARCH/fortran_exportsmexfileversion.map"
+        MWCPPLIB="&quot;$MATLABROOT/sys/os/$ARCH/orig/libstdc++.so.6&quot;"
+        LINKLIBS="-Wl,-rpath-link,$MATLABROOT/bin/$ARCH  -L&quot;$MATLABROOT/sys/os/$ARCH/orig&quot; -L&quot;$MATLABROOT/bin/$ARCH&quot; $MWCPPLIB -lmx -lmex -lmat -lm -L&quot;$GFORTRAN_LIBDIR&quot; -lgfortran"
+        LDOPTIMFLAGS="-O"
+        LDDEBUGFLAGS="-g"
+        MW_GLIBC_SHIM="$MW_GLIBC_SHIM"
+
+        OBJEXT=".o"
+        LDEXT=".mexa64"
+
+        SETENV="FC=&quot;$FC&quot;
+                FFLAGS=&quot;$FFLAGS $DEFINES&quot;
+                FOPTIMFLAGS=&quot;$FOPTIMFLAGS&quot;
+                FDEBUGFLAGS=&quot;$FDEBUGFLAGS&quot;
+                LD=&quot;$FC&quot;
+                LDFLAGS=&quot;$LDFLAGS $LDTYPE $LINKLIBS $LINKEXPORT&quot;
+                LDDEBUGFLAGS=&quot;$LDDEBUGFLAGS&quot;">
+
+        </vars>
+
+    <!---Wl,-twolevel_namespace -undefined error $LDFEXPORT-->
+    <client>
+        <engine
+            LINKLIBS="$LINKLIBS $MW_GLIBC_SHIM -leng"
+            LINKEXPORT=""
+            LINKEXPORTVER=""
+            LDEXT=""
+            LDTYPE=""
+        />
+    </client>
+    <locationFinder>
+        <GFORTRAN_INSTALLDIR>
+            <and>
+                <or>
+                    <cmdReturns name="which gfortran" />
+                    <fileExists name="/usr/local/bin/gfortran" />
+                </or>
+                <dirExists name="$$"/>
+            </and>
+        </GFORTRAN_INSTALLDIR>
+        <GFORTRAN_EXECUTABLE>
+            <or>
+                <cmdReturns name="which gfortran" />
+                <fileExists name="/usr/local/bin/gfortran" />
+            </or>
+        </GFORTRAN_EXECUTABLE>
+        <GFORTRAN_LIBDIR>
+            <and>
+                <or>
+                    <cmdReturns name="which gfortran" />
+                    <fileExists name="/usr/local/bin/gfortran" />
+                </or>
+                <cmdReturns name="gfortran -print-file-name=libgfortran.so" />
+                <dirExists name="$$" />
+            </and>
+        </GFORTRAN_LIBDIR>
+        <GFORTRAN_VERSION>
+            <and>
+                <or>
+                    <cmdReturns name="which gfortran" />
+                    <fileExists name="/usr/local/bin/gfortran" />
+                </or>
+                <cmdReturns name="gfortran -dumpversion | awk -F '.' '$1>=6' " />
+            </and>
+        </GFORTRAN_VERSION>
+    </locationFinder>
+</config>
