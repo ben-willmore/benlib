@@ -291,11 +291,12 @@ cpredmat = cell(nfolds,1);
 
 if (parallel == true)
     offpar = 0;
-    if matlabpool('size') <= 0
+    p = gcp('nocreate');
+    if isempty(p)
         offpar = 1;
-        matlabpool;
+        parpool();
     end
-    
+
     parfor i = 1: nfolds
         which = foldid==i;
         opts = options;
@@ -307,9 +308,9 @@ if (parallel == true)
         xr = x(~which,:); yr = y(~which,:);
         cpredmat{i} = glmnet(xr, yr, family, opts);
     end
-    
+
     if (offpar)
-        matlabpool close;
+        delete(gcp);
     end    
 else   
     for i = 1: nfolds        

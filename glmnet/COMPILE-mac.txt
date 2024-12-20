@@ -1,3 +1,5 @@
+# october 2024, apple silicon build of matlab (r2023b) on mac os 15 -- had to recompile, instructions below worked
+
 # october 2023, apple silicon build of Matlab
 
 # I copied the gfortran6.xml from linux installation of matlab, and made a hybrid of this
